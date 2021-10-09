@@ -1,21 +1,21 @@
 public class ARPLayer implements BaseLayer{
         private class _ARP_HEADER {
-            byte[] macType;								// Hardware Type
-            byte[] ipType;								// Protocol Type
-            byte macAddrLen;							// Length of hardware Address
-            byte ipAddrLen;								// Length of protocol Address
-            byte[] opcode;								// Opcode (ARP Request)
-            _ETHERNET_ADDR srcMac;						// Sender's hardware Address
-            _IP_ADDR srcIp;								// Sender's protocol Address
-            _ETHERNET_ADDR dstMac;						// Target's hardware Address
-            _IP_ADDR dstIp;								// Target's protocol Address
+            byte[] macType;					// Hardware Type
+            byte[] ipType;					// Protocol Type
+            byte macAddrLen;					// Length of hardware Address
+            byte ipAddrLen;					// Length of protocol Address
+            byte[] opcode;					// Opcode (ARP Request)
+            _ETHERNET_ADDR srcMac;				// Sender's hardware Address
+            _IP_ADDR srcIp;					// Sender's protocol Address
+            _ETHERNET_ADDR dstMac;				// Target's hardware Address
+            _IP_ADDR dstIp;					// Target's protocol Address
             
-            public _ARP_HEADER() {						// 28 Bytes
-                this.macType = new byte[2];				// 2 Bytes / 0 ~ 1
-                this.ipType = new byte[2];				// 2 Bytes / 2 ~ 3
+            public _ARP_HEADER() {				// 28 Bytes
+                this.macType = new byte[2];			// 2 Bytes / 0 ~ 1
+                this.ipType = new byte[2];			// 2 Bytes / 2 ~ 3
                 this.macAddrLen = (byte) 0x00;			// 1 Byte  / 4
                 this.ipAddrLen = (byte) 0x00;			// 1 Byte  / 5
-                this.opcode = new byte[2];				// 2 Bytes / 6 ~ 7 
+                this.opcode = new byte[2];		        // 2 Bytes / 6 ~ 7 
                 this.srcMac = new ETHERNET_ADDR();		// 6 Bytes / 8 ~ 13 
                 this.srcIp = new IP_ADDR();			// 4 Bytes / 14 ~ 17
                 this.dstMac = new ETHERNET_ADDR();		// 6 Bytes / 18 ~ 23
