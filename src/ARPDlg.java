@@ -1,19 +1,15 @@
-import com.sun.xml.internal.bind.v2.TODO;
-import jdk.nashorn.internal.scripts.JD;
 import org.jnetpcap.PcapIf;
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class ChatFileDlg extends JFrame implements BaseLayer {
+public class ARPDlg extends JFrame implements BaseLayer {
 
 	public int nUpperLayerCount = 0;
 	public String pLayerName = null;
@@ -63,13 +59,13 @@ public class ChatFileDlg extends JFrame implements BaseLayer {
 		// 하위 계층의 순서를 정함
 		m_LayerMgr.AddLayer(new NILayer("NI"));
 		m_LayerMgr.AddLayer(new EthernetLayer("Ethernet"));
-		m_LayerMgr.AddLayer(new ChatAppLayer("ChatApp"));
-		m_LayerMgr.AddLayer(new ChatFileDlg("GUI"));
+		m_LayerMgr.AddLayer(new ApplicationLayer("ChatApp"));
+		m_LayerMgr.AddLayer(new ARPDlg("GUI"));
 		
 		m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ChatApp ( *GUI ) ) )");
 	}
 
-	public ChatFileDlg(String pName) {
+	public ARPDlg(String pName) {
 		pLayerName = pName;
 
 		// Frame

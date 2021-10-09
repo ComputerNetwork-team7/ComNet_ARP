@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class ChatAppLayer implements BaseLayer {
+public class ApplicationLayer implements BaseLayer {
     public int nUpperLayerCount = 0;
     public String pLayerName = null;
     public BaseLayer p_UnderLayer = null;
@@ -21,7 +21,7 @@ public class ChatAppLayer implements BaseLayer {
         }
     }
 
-    public ChatAppLayer(String pName) {
+    public ApplicationLayer(String pName) {
         // super(pName);
         pLayerName = pName;
         ResetHeader();
