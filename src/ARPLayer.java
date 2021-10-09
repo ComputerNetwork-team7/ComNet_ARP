@@ -1,6 +1,5 @@
 public class ARPLayer implements BaseLayer{
-        public static class _ARP_Cache_Entry{
-            private class _ARP_HEADER {
+        private class _ARP_HEADER {
             byte[] macType;								// Hardware Type
             byte[] ipType;								// Protocol Type
             byte macAddrLen;							// Length of hardware Address
@@ -24,16 +23,17 @@ public class ARPLayer implements BaseLayer{
             }
         }
 
-        byte[] addr;
-        String status;
-        String arp_interface;
-        //ARP Cache Entry
-        public _ARPCache_Entry(byte[] addr, String status, String arp_interface){
-            this.addr = addr;
-            this.status = status;
-            this.arp_interface = arp_interface;
+        public static class _ARP_Cache_Entry{    
+            byte[] addr;
+            String status;
+            String arp_interface;
+            //ARP Cache Entry
+            public _ARPCache_Entry(byte[] addr, String status, String arp_interface){
+                this.addr = addr;
+                this.status = status;
+                this.arp_interface = arp_interface;
+            }
         }
-
         //Proxy ARP Entry
         public static class _Proxy_Entry{
             String hostName;
@@ -91,4 +91,3 @@ public class ARPLayer implements BaseLayer{
             }
         }
     }
-}
