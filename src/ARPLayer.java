@@ -27,7 +27,6 @@ public class ARPLayer implements BaseLayer {
             this.addr[3] = (byte) 0x00;
             this.addr[4] = (byte) 0x00;
             this.addr[5] = (byte) 0x00;
-
         }
     }
 	
