@@ -54,19 +54,6 @@ public class ARPLayer implements BaseLayer{
             ResetHeader();    
         }
         
-        // 각 Port의 mac Address와 Ip Address 저장하는 함수
-        public void initAddress() {
-            String port0_mac = NILayer.getMacAddress(0);
-            String port1_mac = NILayer.getMacAddress(1);
-            myMacAddress[0] = Translator.macToByte(port0_mac);
-            myMacAddress[1] = Translator.macToByte(port1_mac);
-            
-            String port0_ip = NILayer.getIpAddress(0);
-            String port1_ip = NILayer.getIpAddress(1);
-            myIpAddress[0] = Translator.ipToByte(port0_ip);
-            myIpAddress[1] = Translator.ipToByte(port1_ip);
-        }
-        
         private class _IP_ADDR {
             private byte[] addr = new byte[4];
             
