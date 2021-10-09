@@ -5,19 +5,19 @@ public class ApplicationLayer implements BaseLayer {
     public String pLayerName = null;
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
-    _CHAT_APP m_sHeader;
-
-    private class _CHAT_APP {
-        byte[] capp_totlen;
-        byte capp_type;
-        byte capp_unused;
-        byte[] capp_data;
-
-        public _CHAT_APP() {
-            this.capp_totlen = new byte[2];
-            this.capp_type = 0x00;
-            this.capp_unused = 0x00;
-            this.capp_data = null;
+    _ARP_APP m_sHeader;
+    
+    private class _ARP_APP {
+        byte[] app_totlen;
+        byte app_type;
+        byte app_unused;
+        byte[] app_data;
+        
+        public _ARP_APP() {
+            this.app_totlen = new byte[2];
+            this.app_type = 0x00;
+            this.app_unused = 0x00;
+            this.app_data = null;
         }
     }
 
@@ -28,23 +28,23 @@ public class ApplicationLayer implements BaseLayer {
     }
 
     private void ResetHeader() {
-        m_sHeader = new _CHAT_APP();
+        m_sHeader = new _ARP_APP();
     }
 
-    private byte[] objToByte(_CHAT_APP Header, byte[] input, int length) {
-        byte[] buf = new byte[length + 4];
-
-        buf[0] = Header.capp_totlen[0];
-        buf[1] = Header.capp_totlen[1];
-        buf[2] = Header.capp_type;
-        buf[3] = Header.capp_unused;
+    private byte[] objToByte(_ARP_APP Header, byte[] input, int length) {
+        byte[] buf = new     byte[length + 4];
+        
+        buf[0] = Header.app_totlen[0];
+        buf[1] = Header.app_totlen[1];
+        buf[2] = Header.app_type;
+        buf[3] = Header.app_unused;
 
         if (length >= 0) System.arraycopy(input, 0, buf, 4, length);
 
         return buf;
     }
 
-    public byte[] RemoveCappHeader(byte[] input, int length) {
+    public byte[] RemoveappHeader(byte[] input, int length) {
         byte[] cpyInput = new byte[length - 4];
         System.arraycopy(input, 4, cpyInput, 0, length - 4);
         input = cpyInput;
