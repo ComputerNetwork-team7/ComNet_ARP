@@ -7,7 +7,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Map;
 
 public class ARPDlg extends JFrame implements BaseLayer {
 
@@ -24,7 +27,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
 	// ARP Cache
 	JTextArea ARPCacheTableArea;
 	JList list_arp_cache;		// arp cache list
-	DefaultListModel model_arp;	// 실제 arp cache 데이터
+	static DefaultListModel model_arp;	// 실제 arp cache 데이터
 	JScrollPane scroll_arp;		// 스크롤 속성(arp)
 	JButton Item_Delete_Button;	// Item Delete 버튼
 	JButton All_Delete_Button;	// All Delete 버튼
@@ -32,7 +35,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
 
 	// Proxy ARP
 	JList list_proxy_arp;			// proxy arp entry list
-	DefaultListModel model_proxy;	// 실제 proxy arp entry 데이터
+	static DefaultListModel model_proxy;	// 실제 proxy arp entry 데이터
 	JScrollPane scroll_proxy;		// 스크롤 속성(proxy)
 	JButton Add_Button_Proxy;		// Add 버튼
 	JButton Delete_Button_Proxy;	// Delete 버튼
@@ -135,8 +138,8 @@ public class ARPDlg extends JFrame implements BaseLayer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(e.getSource() == All_Delete_Button) {
-					// 전체 항목 삭제
-					model_arp.removeAllElements();
+					// TODO: 전체 항목 삭제
+
 				}
 			}
 		});
@@ -296,14 +299,16 @@ public class ARPDlg extends JFrame implements BaseLayer {
 		Delete_Button_Proxy.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO: Delete 버튼 클릭 이벤트 처리 - DONE
+				// TODO: Delete 버튼 클릭 이벤트 처리
 				if(e.getSource() == Delete_Button_Proxy) {
+					// ARPLayer의 DeleteProxyEntry() 함수를 불러서 지움
 					int selected_index = list_proxy_arp.getSelectedIndex();
 					if(selected_index < 0) {	// 선택된 항목이 없는 경우 예외처리
 						if(model_proxy.size() == 0) return;	// 아무것도 없는경우
 						selected_index = 0;
 					}
-					model_proxy.remove(selected_index);	// 선택항목 삭제
+					String item = model_proxy.getElementAt(selected_index).toString();
+					ARPLayer.deleteProxyEntry(item.substring(20,39).trim());	// IP주소만 잘라서 key로 전달
 				}
 			}
 		});
@@ -382,17 +387,16 @@ public class ARPDlg extends JFrame implements BaseLayer {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					// TODO: 입력받은 정보를 Proxy Entry 리스트에 추가 후 창을 닫음
-					String deviceName = d_tf.getText();
+					String hostName = d_tf.getText();
 					String hostIP = ip_tf.getText();
 					String hostEthernet = e_tf.getText();
 
-					if(deviceName == null || deviceName.length() == 0
-						|| hostIP == null || hostIP.length() == 0
-						|| hostEthernet == null || hostEthernet.length() == 0) {
-						return;
-					}
-					String itemText = String.format("%-20s %-20s %-20s", deviceName, hostIP, hostEthernet);
-					model_proxy.addElement(itemText);
+					// hostEthernet의 :를 빼고 byte배열로 변환
+					hostEthernet = hostEthernet.replace(":","");
+					byte[] hostEthernet_bytearr = hostEthernet.getBytes();
+
+					// ARPLayer의 Proxy Entry 테이블에 추가하도록 함
+					ARPLayer.addProxyEntry(hostName, hostIP, hostEthernet_bytearr);
 
 					d_tf.setText("");
 					ip_tf.setText("");
@@ -419,13 +423,8 @@ public class ARPDlg extends JFrame implements BaseLayer {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (e.getSource() == ARP_send_Button) { // ARP Send 버튼 클릭 이벤트 처리
-				// TODO: ARP Send 버튼 클릭 이벤트 처리 1 - Table에 항목 추가
-				String targetIP = targetIPWrite.getText();	// 타겟 IP 주소
-				if(targetIP == null || targetIP.length() == 0)	return;
-				String itemText = String.format("%-20s %-20s %-20s", targetIP, "???????????", "incomplete");
-
-				model_arp.addElement(itemText);
-				targetIPWrite.setText("");	// 텍스트필드 내용 지우기
+				// ARP Send 버튼 클릭 이벤트 처리 1 - ARP Cache Table Update
+				// ARPLayer에서 GUI Window update 함수 호출하는 것으로 대체
 
 				// TODO: ARP Send 버튼 클릭 이벤트 처리 2 - 패킷 전송(Send) 구현
 
@@ -457,6 +456,68 @@ public class ARPDlg extends JFrame implements BaseLayer {
 	public boolean Receive(byte[] input) { //硫붿떆吏� Receive
 		// TODO: Receive 구현
 		return true;
+	}
+
+	// GUI의 ARPCacheEntryWindow를 업데이트하는 함수
+	public static void UpdateARPCacheEntryWindow(Hashtable<String, ARPLayer._ARP_Cache_Entry> table) {
+		model_arp.removeAllElements();
+		if(table.size() > 0) {
+			for(Map.Entry<String, ARPLayer._ARP_Cache_Entry> e : table.entrySet()) {
+				String targetIP = e.getKey();	// 타겟 IP 주소
+				if(targetIP == null || targetIP.length() == 0)	return;
+
+				String macAddr_string;
+				byte[] macAddr_bytearray = e.getValue().addr;	// mac 주소
+				if(macAddr_bytearray == null || macAddr_bytearray.length == 0) {
+					// mac 주소 모르는 경우
+					macAddr_string = "????????????";
+				} else {
+					// mac 주소 아는 경우
+					macAddr_string = new String(macAddr_bytearray);
+				}
+
+				String status = e.getValue().status? "complete" : "incomplete";		// status 정보
+
+				// Window에 표시될 최종 정보
+				String itemText = String.format("%-20s %-20s %-20s", targetIP, macAddr_string, "incomplete");
+
+				model_arp.addElement(itemText);
+			}
+		}
+	}
+
+	// GUI의 ProxyEntryWindow를 업데이트하는 함수
+	public static void UpdateProxyEntryWindow(Hashtable<String, ARPLayer._Proxy_Entry> table) {
+		model_proxy.removeAllElements();
+		if(table.size() > 0) {
+			for(Map.Entry<String, ARPLayer._Proxy_Entry> e : table.entrySet()) {
+				String ipAddr = e.getKey();	// IP 주소
+				if(ipAddr == null || ipAddr.length() == 0)	return;
+
+				String hostName = e.getValue().hostName;
+
+				String macAddr_string = "";
+				byte[] macAddr_bytearray = e.getValue().addr;	// mac 주소
+				// : 붙이기
+				macAddr_string += new String(new byte[] { macAddr_bytearray[0] })
+						+ new String(new byte[] { macAddr_bytearray[1] }) + ":";
+				macAddr_string += new String(new byte[] { macAddr_bytearray[2] })
+						+ new String(new byte[] { macAddr_bytearray[3] }) + ":";
+				macAddr_string += new String(new byte[] { macAddr_bytearray[4] })
+						+ new String(new byte[] { macAddr_bytearray[5] }) + ":";
+				macAddr_string += new String(new byte[] { macAddr_bytearray[6] })
+						+ new String(new byte[] { macAddr_bytearray[7] }) + ":";
+				macAddr_string += new String(new byte[] { macAddr_bytearray[8] })
+						+ new String(new byte[] { macAddr_bytearray[9] }) + ":";
+				macAddr_string += new String(new byte[] { macAddr_bytearray[10] })
+						+ new String(new byte[] { macAddr_bytearray[11] });
+
+				// Window에 표시될 최종 정보
+				String itemText = String.format("%-20s %-20s %-20s", hostName, ipAddr, macAddr_string);
+
+				model_proxy.addElement(itemText);
+			}
+		}
 	}
 
 	@Override

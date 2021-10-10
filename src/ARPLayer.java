@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 public class ARPLayer implements BaseLayer {
     public int nUpperLayerCount = 0;
@@ -6,8 +7,11 @@ public class ARPLayer implements BaseLayer {
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
 
-    _ARP_HEADER m_sHeader;
+    // Key: IP 주소
+    public static Hashtable<String, _ARP_Cache_Entry> ARP_Cache_table = new Hashtable<>();
+    public static Hashtable<String, _Proxy_Entry> Proxy_Entry_table = new Hashtable<>();
 
+    _ARP_HEADER m_sHeader;
 
     private class _ARP_HEADER {
         byte[] macType;					// Hardware Type
@@ -35,20 +39,21 @@ public class ARPLayer implements BaseLayer {
 
     public static class _ARP_Cache_Entry {
         byte[] addr;
-        String status;
-        String arp_interface;
+        boolean status;
+        int lifetime;
+
         //ARP Cache Entry
-        public void _ARPCache_Entry(byte[] addr, String status, String arp_interface){
+        public void _ARPCache_Entry(byte[] addr, boolean status, int lifetime){
             this.addr = addr;
             this.status = status;
-            this.arp_interface = arp_interface;
+            this.lifetime = lifetime;
         }
     }
 
     //Proxy ARP Entry
     public static class _Proxy_Entry{
         String hostName;
-        byte[] addr;
+        byte[] addr;    // mac addr
 
         public _Proxy_Entry(byte[] addr, String hostName){
             this.hostName = hostName;
@@ -104,8 +109,30 @@ public class ARPLayer implements BaseLayer {
     }
 
     public boolean Send(byte[] input, int length) {
+        // TODO: Send 구현
+        // arp테이블에서 이미 있는 ip인지 확인
 
+        // 없으면 arp 테이블에 추가 후 GUI update
+
+        // 헤더 붙여서 하위 레이어에 전달
         return true;
+    }
+
+    // 새 proxy host를 해시테이블에 추가하는 함수
+    public static void addProxyEntry(String hostName, String ip, byte[] addr) {
+        _Proxy_Entry newItem = new _Proxy_Entry(addr, hostName);
+        Proxy_Entry_table.put(ip, newItem);
+
+        // GUI update
+        ARPDlg.UpdateProxyEntryWindow(Proxy_Entry_table);
+    }
+
+    // proxy host를 해시테이블에서 삭제하는 함수
+    public static void deleteProxyEntry(String ip_key) {
+        Proxy_Entry_table.remove(ip_key);
+
+        // GUI update
+        ARPDlg.UpdateProxyEntryWindow(Proxy_Entry_table);
     }
 
     public byte[] RemoveARPHeader(byte[] input, int length) {
