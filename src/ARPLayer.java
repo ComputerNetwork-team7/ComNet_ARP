@@ -118,6 +118,14 @@ public class ARPLayer implements BaseLayer {
         return true;
     }
 
+    // arp cache entry를 해시테이블에서 삭제하는 함수
+    public static void deleteARPEntry(String ip_key) {
+        ARP_Cache_table.remove(ip_key);
+
+        // GUI update
+        ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
+    }
+
     // 새 proxy host를 해시테이블에 추가하는 함수
     public static void addProxyEntry(String hostName, String ip, byte[] addr) {
         _Proxy_Entry newItem = new _Proxy_Entry(addr, hostName);

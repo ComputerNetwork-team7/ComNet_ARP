@@ -124,7 +124,8 @@ public class ARPDlg extends JFrame implements BaseLayer {
 						if(model_arp.size() == 0) return;	// 아무것도 없는경우
 						selected_index = 0;
 					}
-					model_arp.remove(selected_index);	// 선택항목 삭제
+					String item = model_arp.getElementAt(selected_index).toString();
+					ARPLayer.deleteARPEntry(item.substring(0,19).trim());	// IP주소만 잘라서 key로 전달
 				}
 			}
 		});
@@ -299,7 +300,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
 		Delete_Button_Proxy.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO: Delete 버튼 클릭 이벤트 처리
+				// TODO: Delete 버튼 클릭 이벤트 처리 - DONE
 				if(e.getSource() == Delete_Button_Proxy) {
 					// ARPLayer의 DeleteProxyEntry() 함수를 불러서 지움
 					int selected_index = list_proxy_arp.getSelectedIndex();
@@ -466,14 +467,26 @@ public class ARPDlg extends JFrame implements BaseLayer {
 				String targetIP = e.getKey();	// 타겟 IP 주소
 				if(targetIP == null || targetIP.length() == 0)	return;
 
-				String macAddr_string;
+				String macAddr_string = "";
 				byte[] macAddr_bytearray = e.getValue().addr;	// mac 주소
 				if(macAddr_bytearray == null || macAddr_bytearray.length == 0) {
 					// mac 주소 모르는 경우
 					macAddr_string = "????????????";
 				} else {
-					// mac 주소 아는 경우
-					macAddr_string = new String(macAddr_bytearray);
+					// mac 주소 아는 경우=
+					// : 붙이기
+					macAddr_string += new String(new byte[] { macAddr_bytearray[0] })
+							+ new String(new byte[] { macAddr_bytearray[1] }) + ":";
+					macAddr_string += new String(new byte[] { macAddr_bytearray[2] })
+							+ new String(new byte[] { macAddr_bytearray[3] }) + ":";
+					macAddr_string += new String(new byte[] { macAddr_bytearray[4] })
+							+ new String(new byte[] { macAddr_bytearray[5] }) + ":";
+					macAddr_string += new String(new byte[] { macAddr_bytearray[6] })
+							+ new String(new byte[] { macAddr_bytearray[7] }) + ":";
+					macAddr_string += new String(new byte[] { macAddr_bytearray[8] })
+							+ new String(new byte[] { macAddr_bytearray[9] }) + ":";
+					macAddr_string += new String(new byte[] { macAddr_bytearray[10] })
+							+ new String(new byte[] { macAddr_bytearray[11] });
 				}
 
 				String status = e.getValue().status? "complete" : "incomplete";		// status 정보
