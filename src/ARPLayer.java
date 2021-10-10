@@ -83,7 +83,7 @@ public class ARPLayer implements BaseLayer {
 
     private class _ETHERNET_ADDR {
         private byte[] addr = new byte[6];
-
+     
         public _ETHERNET_ADDR() {
             this.addr[0] = (byte) 0x00;
             this.addr[1] = (byte) 0x00;
