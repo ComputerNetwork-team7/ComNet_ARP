@@ -59,10 +59,12 @@ public class ARPDlg extends JFrame implements BaseLayer {
 		// 하위 계층의 순서를 정함
 		m_LayerMgr.AddLayer(new NILayer("NI"));
 		m_LayerMgr.AddLayer(new EthernetLayer("Ethernet"));
-		m_LayerMgr.AddLayer(new ApplicationLayer("ChatApp"));
+		m_LayerMgr.AddLayer(new ARPLayer("ARP"));
+		m_LayerMgr.AddLayer(new IPLayer("IP"));
+		m_LayerMgr.AddLayer(new ApplicationLayer("Application"));
 		m_LayerMgr.AddLayer(new ARPDlg("GUI"));
 		
-		m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ChatApp ( *GUI ) ) )");
+		m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ARP ( *IP ) *IP ( *Application ( *GUI ) ) ) )");
 	}
 
 	public ARPDlg(String pName) {

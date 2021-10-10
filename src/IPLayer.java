@@ -1,66 +1,44 @@
 import java.util.ArrayList;
 
-public class ARPLayer implements BaseLayer {
+public class IPLayer implements BaseLayer {
     public int nUpperLayerCount = 0;
     public String pLayerName = null;
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
 
-    _ARP_HEADER m_sHeader;
+    _IP_HEADER m_sHeader;
 
+    private class _IP_HEADER {
+        byte ip_verlen;     // ip version->IPv4 : 4 (1 byte)
+        byte ip_tos;        // type of service
+        byte[] ip_len;      // total packet length
+        byte[] ip_id;       // datagram id
+        byte[] ip_fragoff;  // fragment offset
+        byte ip_ttl;        // time to live in gateway hops
+        byte ip_proto;      // IP protocol
+        byte[] ip_cksum;    // header checksum
+        _IP_ADDR ip_src;    // source IP address
+        _IP_ADDR ip_dst;    // destination IP address
 
-    private class _ARP_HEADER {
-        byte[] macType;					// Hardware Type
-        byte[] ipType;					// Protocol Type
-        byte macAddrLen;				// Length of hardware Address
-        byte ipAddrLen;					// Length of protocol Address
-        byte[] opcode;					// Opcode (ARP Request)
-        _ETHERNET_ADDR srcMac;			// Sender's hardware Address
-        _IP_ADDR srcIp;					// Sender's protocol Address
-        _ETHERNET_ADDR dstMac;			// Target's hardware Address
-        _IP_ADDR dstIp;					// Target's protocol Address
-
-        public _ARP_HEADER() {          // 28 Bytes
-            this.macType = new byte[2];			    // 2 Bytes / 0 ~ 1
-            this.ipType = new byte[2];			    // 2 Bytes / 2 ~ 3
-            this.macAddrLen = (byte) 0x00;			// 1 Byte  / 4
-            this.ipAddrLen = (byte) 0x00;			// 1 Byte  / 5
-            this.opcode = new byte[2];		        // 2 Bytes / 6 ~ 7
-            this.srcMac = new _ETHERNET_ADDR();		// 6 Bytes / 8 ~ 13
-            this.srcIp = new _IP_ADDR();			// 4 Bytes / 14 ~ 17
-            this.dstMac = new _ETHERNET_ADDR();		// 6 Bytes / 18 ~ 23
-            this.dstIp = new _IP_ADDR();			// 4 Bytes / 24 ~ 27
-        }
-    }
-
-    public static class _ARP_Cache_Entry {
-        byte[] addr;
-        String status;
-        String arp_interface;
-        //ARP Cache Entry
-        public void _ARPCache_Entry(byte[] addr, String status, String arp_interface){
-            this.addr = addr;
-            this.status = status;
-            this.arp_interface = arp_interface;
-        }
-    }
-
-    //Proxy ARP Entry
-    public static class _Proxy_Entry{
-        String hostName;
-        byte[] addr;
-
-        public _Proxy_Entry(byte[] addr, String hostName){
-            this.hostName = hostName;
-            this.addr = addr;
+        public _IP_HEADER() {				// 20 Bytes
+            this.ip_verlen = (byte) 0x00;       // 1 Byte / 0
+            this.ip_tos = (byte) 0x00;          // 1 Byte / 1
+            this.ip_len = new byte[2];          // 2 Byte / 2 ~ 3
+            this.ip_id = new byte[2];           // 2 Byte / 4 ~ 5
+            this.ip_fragoff = new byte[2];      // 2 Byte / 6 ~ 7
+            this.ip_ttl = (byte) 0x00;          // 1 Byte / 8
+            this.ip_proto = (byte) 0x00;        // 1 Byte / 9
+            this.ip_cksum = new byte[2];        // 2 Byte / 10 ~ 11
+            this.ip_src = new _IP_ADDR();       // 4 Byte / 12 ~ 15
+            this.ip_dst = new _IP_ADDR();       // 4 Byte / 16 ~ 19
         }
     }
 
     private void ResetHeader(){
-            m_sHeader = new _ARP_HEADER();
+        m_sHeader = new _IP_HEADER();
     }
 
-    public ARPLayer(String pName){
+    public IPLayer(String pName){
         pLayerName = pName;
         ResetHeader();
     }
@@ -89,7 +67,7 @@ public class ARPLayer implements BaseLayer {
         }
     }
 
-    public byte[] ObjToByte(_ARP_HEADER Header, byte[] input, int length) {//data�� ��� �ٿ��ֱ�
+    public byte[] ObjToByte(_IP_HEADER Header, byte[] input, int length) {//data�� ��� �ٿ��ֱ�
         byte[] buf = new byte[length + 14];
 //        for(int i = 0; i < 6; i++) {
 //            buf[i] = Header.enet_dstaddr.addr[i];

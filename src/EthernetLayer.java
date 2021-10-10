@@ -34,16 +34,16 @@ public class EthernetLayer implements BaseLayer {
     }
     
     private class _ETHERNET_Frame {
-        _ETHERNET_ADDR enet_dstaddr;
-        _ETHERNET_ADDR enet_srcaddr;
-        byte[] enet_type;
-        byte[] enet_data;
+        _ETHERNET_ADDR enet_dstaddr;	// destination mac addr
+        _ETHERNET_ADDR enet_srcaddr;	// source mac addr
+        byte[] enet_type;				// ethernet protocol type
+        byte[] enet_data;				// data
 
         public _ETHERNET_Frame() {
-            this.enet_dstaddr = new _ETHERNET_ADDR();
-            this.enet_srcaddr = new _ETHERNET_ADDR();
-            this.enet_type = new byte[2];
-            this.enet_data = null;
+            this.enet_dstaddr = new _ETHERNET_ADDR();	// 6 Bytes / 0 ~ 5
+            this.enet_srcaddr = new _ETHERNET_ADDR();	// 6 Bytes / 6 ~ 11
+            this.enet_type = new byte[2];				// 2 Bytes / 12 ~ 13
+            this.enet_data = null;						// variable length data
         }
     }
     
@@ -61,24 +61,25 @@ public class EthernetLayer implements BaseLayer {
 		return buf;
 	}
 
-    // [전송]
-	// 채팅 전송 함수
+    // 상위 레이어에서 내려온 데이터에 Ethernet Header를 붙여서 전송
 	public boolean Send(byte[] input, int length) {
-		if (isBroadcast(m_sHeader.enet_dstaddr.addr)) // broadcast
-			m_sHeader.enet_type = intToByte2(0xff);
-		else // normal
-			// enet_type = 0x2080 (ChatAppLayer)
-			m_sHeader.enet_type[0] = (byte) 0x20;
-			m_sHeader.enet_type[1] = (byte) 0x80;
+		if (isBroadcast(m_sHeader.enet_dstaddr.addr)) { // broadcast라면 ARP 요청인 것 - 0x0806 (ARP)
+			m_sHeader.enet_type[0] = (byte) 0x08;
+			m_sHeader.enet_type[1] = (byte) 0x06;
+		}
+		else {	// broadcast가 아니라면 일반 메시지 전송인 것이므로 0x0800 (IP)
+			m_sHeader.enet_type[0] = (byte) 0x08;
+			m_sHeader.enet_type[1] = (byte) 0x00;
+		}
 
+		// data에 헤더를 붙여서 Send
 		byte[] bytes = ObjToByte(m_sHeader, input, length);
 		this.GetUnderLayer().Send(bytes, length + 14);
 		return true;
 	}
 	
 
-	// [수신]
-	// Ethernet헤더 제거 함수
+	// Ethernet Header 제거 함수
 	public byte[] RemoveEthernetHeader(byte[] input, int length) {
 		byte[] cpyInput = new byte[length - 14];
 		System.arraycopy(input, 14, cpyInput, 0, length - 14);
@@ -90,20 +91,20 @@ public class EthernetLayer implements BaseLayer {
 	public synchronized boolean Receive(byte[] input) {
 		byte[] data;
 		byte[] temp_src = m_sHeader.enet_srcaddr.addr;
-		
+
 		// Ethernet 프레임 헤더 중에 16비트(2 byte) 프로토콜 타입 필드를 보고 판단하여 상위 계층으로 전달 (enet_type)
-		if(input[12] == (byte) 0x20 && input[13] == (byte) 0x80) {	// Chatting Ethernet frame
+		if(input[12] == (byte) 0x08 && input[13] == (byte) 0x06) {	// 0X0806 - ARP (첫 번째 상위레이어)
 			if (chkAddr(input) || (isBroadcast(input)) || !isMyPacket(input)) {
 				data = RemoveEthernetHeader(input, input.length);
-				this.GetUpperLayer(0).Receive(data);	// To ChatAppLayer
+				this.GetUpperLayer(0).Receive(data);	// To ARPLayer
 				return true;
 			}
 		}
-		
-		else if(input[12] == (byte) 0x20 && input[13] == (byte) 0x90) {	// File Ethernet frame
+
+		else if(input[12] == (byte) 0x08 && input[13] == (byte) 0x00) {	// 0x0800 - IP (두 번째 상위레이어)
 			if (chkAddr(input) || (isBroadcast(input)) || !isMyPacket(input)) {
 				data = RemoveEthernetHeader(input, input.length);
-				this.GetUpperLayer(1).Receive(data);	// To FileAppLayer
+				this.GetUpperLayer(1).Receive(data);	// To IPLayer
 				return true;
 			}
 		}
@@ -122,14 +123,17 @@ public class EthernetLayer implements BaseLayer {
     private int byte2ToInt(byte value1, byte value2) {
         return (int)((value1 << 8) | (value2));
     }
-	
+
+	// 목적지 Ethernet 주소가 브로드캐스트(ff-ff-ff-ff-ff-ff)인 경우 true
 	private boolean isBroadcast(byte[] bytes) {
-		for(int i = 0; i< 6; i++)
+		for(int i = 0; i< 6; i++) {
 			if (bytes[i] != (byte) 0xff)
 				return false;
-		return (bytes[12] == (byte) 0xff && bytes[13] == (byte) 0xff);
+		}
+		return true;
 	}
 
+	// 자신이 만든 frame인 경우 true (Src Ethernet 주소가 자신의 주소인 경우)
 	private boolean isMyPacket(byte[] input){
 		for(int i = 0; i < 6; i++)
 			if(m_sHeader.enet_srcaddr.addr[i] != input[6 + i])
@@ -137,6 +141,7 @@ public class EthernetLayer implements BaseLayer {
 		return true;
 	}
 
+	// 목적지 Ethernet 주소가 자신의 Ethernet 주소인 경우 true
 	private boolean chkAddr(byte[] input) {
 		byte[] temp = m_sHeader.enet_srcaddr.addr;
 		for(int i = 0; i< 6; i++)

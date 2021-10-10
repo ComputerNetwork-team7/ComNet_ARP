@@ -5,15 +5,15 @@ public class ApplicationLayer implements BaseLayer {
     public String pLayerName = null;
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
-    _ARP_APP m_sHeader;
+    _ARP_HEADER m_sHeader;
     
-    private class _ARP_APP {
+    private class _ARP_HEADER {
         byte[] app_totlen;
         byte app_type;
         byte app_unused;
         byte[] app_data;
         
-        public _ARP_APP() {
+        public _ARP_HEADER() {
             this.app_totlen = new byte[2];
             this.app_type = 0x00;
             this.app_unused = 0x00;
@@ -28,10 +28,10 @@ public class ApplicationLayer implements BaseLayer {
     }
 
     private void ResetHeader() {
-        m_sHeader = new _ARP_APP();
+        m_sHeader = new _ARP_HEADER();
     }
 
-    private byte[] objToByte(_ARP_APP Header, byte[] input, int length) {
+    private byte[] objToByte(_ARP_HEADER Header, byte[] input, int length) {
         byte[] buf = new     byte[length + 4];
         
         buf[0] = Header.app_totlen[0];
