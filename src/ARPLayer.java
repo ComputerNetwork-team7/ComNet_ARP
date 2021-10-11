@@ -43,7 +43,7 @@ public class ARPLayer implements BaseLayer {
         int lifetime;
 
         //ARP Cache Entry
-        public void _ARPCache_Entry(byte[] addr, boolean status, int lifetime){
+        public _ARP_Cache_Entry(byte[] addr, boolean status, int lifetime){
             this.addr = addr;
             this.status = status;
             this.lifetime = lifetime;
@@ -108,14 +108,25 @@ public class ARPLayer implements BaseLayer {
         return buf;
     }
 
-    public boolean Send(byte[] input, int length) {
+    public boolean Send(byte[] input, int length, String dstIP) {
         // TODO: Send 구현
         // arp테이블에서 이미 있는 ip인지 확인
-
-        // 없으면 arp 테이블에 추가 후 GUI update
+        // 없으면 arp 테이블에 추가
+        if(!ARP_Cache_table.containsKey(dstIP)) {
+            addARPEntry(dstIP);
+        }
 
         // 헤더 붙여서 하위 레이어에 전달
         return true;
+    }
+
+    // arp cache entry를 해시테이블에 추가하는 함수
+    public static void addARPEntry(String ip_key) {
+        _ARP_Cache_Entry newItem = new _ARP_Cache_Entry(null, false, 3);
+        ARP_Cache_table.put(ip_key, newItem);
+
+        // GUI update
+        ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
     }
 
     // arp cache entry를 해시테이블에서 삭제하는 함수
@@ -166,6 +177,15 @@ public class ARPLayer implements BaseLayer {
     private int byte2ToInt(byte value1, byte value2) {
         return (int)((value1 << 8) | (value2));
     }
+
+    public void SetSrcMacAddress(byte[] srcAddress) {
+        m_sHeader.srcMac.addr = srcAddress;
+    }
+
+    public void SetSrcIPAddress(byte[] srcAddress) {
+        m_sHeader.srcIp.addr = srcAddress;
+    }
+
 
     @Override
     public String GetLayerName() {

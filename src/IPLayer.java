@@ -54,46 +54,67 @@ public class IPLayer implements BaseLayer {
         }
     }
 
-    private class _ETHERNET_ADDR {
-        private byte[] addr = new byte[6];
+    public byte[] objToByte(_IP_HEADER Header, byte[] input, int length) {//data�� ��� �ٿ��ֱ�
+        byte[] buf = new byte[length + 20];
 
-        public _ETHERNET_ADDR() {
-            this.addr[0] = (byte) 0x00;
-            this.addr[1] = (byte) 0x00;
-            this.addr[2] = (byte) 0x00;
-            this.addr[3] = (byte) 0x00;
-            this.addr[4] = (byte) 0x00;
-            this.addr[5] = (byte) 0x00;
+        buf[0] = Header.ip_verlen;
+        buf[1] = Header.ip_tos;
+        buf[2] = Header.ip_len[0];
+        buf[3] = Header.ip_len[1];
+        buf[4] = Header.ip_id[0];
+        buf[5] = Header.ip_id[1];
+        buf[6] = Header.ip_fragoff[0];
+        buf[7] = Header.ip_fragoff[1];
+        buf[8] = Header.ip_ttl;
+        buf[9] = Header.ip_proto;
+        buf[10] = Header.ip_cksum[0];
+        buf[11] = Header.ip_cksum[1];
+        for(int i = 0; i < 4; i++) {
+            buf[12+i] =Header.ip_src.addr[i];
         }
-    }
+        for(int i = 0; i < 4; i++) {
+            buf[16+i] =Header.ip_dst.addr[i];
+        }
 
-    public byte[] ObjToByte(_IP_HEADER Header, byte[] input, int length) {//data�� ��� �ٿ��ֱ�
-        byte[] buf = new byte[length + 14];
-//        for(int i = 0; i < 6; i++) {
-//            buf[i] = Header.enet_dstaddr.addr[i];
-//            buf[i+6] = Header.enet_srcaddr.addr[i];
-//        }
-//        buf[12] = Header.enet_type[0];
-//        buf[13] = Header.enet_type[1];
-//        for (int i = 0; i < length; i++)
-//            buf[14 + i] = input[i];
+        if (length >= 0) System.arraycopy(input, 0, buf, 20, length);
 
         return buf;
     }
 
-    public boolean Send(byte[] input, int length) {
+    public boolean Send(byte[] input, int length, String dstIP) {
+        // Header ip_dst Setting
+        byte[] dstIP_bytearr = new byte[4];
+        String[] byte_ip = dstIP.split("\\.");
+        for (int i = 0; i < 4; i++) {
+            dstIP_bytearr[i] = (byte) Integer.parseInt(byte_ip[i], 16);
+        }
+        this.m_sHeader.ip_dst.addr = dstIP_bytearr;
+
+        // Send
+        byte[] bytes;
+        m_sHeader.ip_len = intToByte2(length);
+        m_sHeader.ip_id[0] = (byte) 0x00;
+        m_sHeader.ip_id[1] = (byte) 0x00;
+        m_sHeader.ip_fragoff[0] = (byte) 0x00;
+        m_sHeader.ip_fragoff[1] = (byte) 0x00;
+        m_sHeader.ip_cksum[0] = (byte) 0x00;
+        m_sHeader.ip_cksum[1] = (byte) 0x00;
+
+        bytes = objToByte(m_sHeader, input, input.length);
+        this.GetUnderLayer().GetUpperLayer(0).Send(bytes, bytes.length, dstIP); // to ARPLayer
 
         return true;
     }
 
     public byte[] RemoveARPHeader(byte[] input, int length) {
-        byte[] cpyInput = new byte[length - 14];
-//        System.arraycopy(input, 14, cpyInput, 0, length - 14);
-//        input = cpyInput;
+        byte[] cpyInput = new byte[length - 20];
+        System.arraycopy(input, 20, cpyInput, 0, length - 20);
+        input = cpyInput;
         return input;
     }
 
     public synchronized boolean Receive(byte[] input) {
+        // TODO: Receive 구현
 
         return true;
     }
@@ -108,6 +129,10 @@ public class IPLayer implements BaseLayer {
 
     private int byte2ToInt(byte value1, byte value2) {
         return (int)((value1 << 8) | (value2));
+    }
+
+    public void SetSrcIPAddress(byte[] srcAddress) {
+        m_sHeader.ip_src.addr = srcAddress;
     }
 
     @Override

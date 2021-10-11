@@ -415,7 +415,29 @@ public class ARPDlg extends JFrame implements BaseLayer {
 
 			if (e.getSource() == Setting_Button) { // Setting 버튼 클릭 이벤트 처리
 				// TODO: Setting 버튼 클릭 이벤트 처리
+				byte[] srcMAC = new byte[6];
+				byte[] srcIP = new byte[4];
 
+				String mac = srcMacAddress.getText();
+				String ip = srcIPAddress.getText();
+
+				String[] byte_mac = mac.split("-");
+				for (int i = 0; i < 6; i++) {
+					srcMAC[i] = (byte) Integer.parseInt(byte_mac[i], 16);
+				}
+
+				String[] byte_ip = ip.split("\\.");
+				for (int i = 0; i < 4; i++) {
+					srcIP[i] = (byte) Integer.parseInt(byte_ip[i], 16);
+				}
+
+				// 하위 레이어에 srcIP, srcMac 헤더 세팅
+				((IPLayer) m_LayerMgr.GetLayer("IP")).SetSrcIPAddress(srcIP);
+				((ARPLayer) m_LayerMgr.GetLayer("ARP")).SetSrcMacAddress(srcMAC);
+				((ARPLayer) m_LayerMgr.GetLayer("ARP")).SetSrcIPAddress(srcIP);
+				((EthernetLayer) m_LayerMgr.GetLayer("Ethernet")).SetEnetSrcAddress(srcMAC);
+
+				((NILayer) m_LayerMgr.GetLayer("NI")).SetAdapterNumber(adapterNumber);
 			}
 		}
 	}
@@ -428,7 +450,11 @@ public class ARPDlg extends JFrame implements BaseLayer {
 				// ARPLayer에서 GUI Window update 함수 호출하는 것으로 대체
 
 				// TODO: ARP Send 버튼 클릭 이벤트 처리 2 - 패킷 전송(Send) 구현
+				String dstIP = targetIPWrite.getText();
 
+				String input = "";	// data
+				byte[] bytes = input.getBytes();
+				((ApplicationLayer) m_LayerMgr.GetLayer("Application")).Send(bytes, bytes.length, dstIP);
 			}
 
 			if (e.getSource() == gratSendButton) { // gratuitous ARP Send 버튼 클릭 이벤트 처리
