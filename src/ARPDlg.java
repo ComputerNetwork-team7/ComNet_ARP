@@ -139,8 +139,8 @@ public class ARPDlg extends JFrame implements BaseLayer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(e.getSource() == All_Delete_Button) {
-					// TODO: 전체 항목 삭제
-
+					// TODO: 전체 항목 삭제 - DONE
+					ARPLayer.deleteAllARPEntry();
 				}
 			}
 		});
