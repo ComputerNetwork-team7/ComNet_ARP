@@ -163,6 +163,21 @@ public class ARPLayer implements BaseLayer {
         ARPDlg.UpdateProxyEntryWindow(Proxy_Entry_table);
     }
 
+    // ARPLayer가 받은 패킷의 ARP Header에서 dstIP를 확인하고
+    // proxy table에 있는지 확인하는 함수
+    public boolean IsProxyHost(byte[] input) {
+        // 패킷으로부터 dstIP 추출
+        String dstIP;
+        String s1 = String.valueOf(input[24]);
+        String s2 = String.valueOf(input[25]);
+        String s3 = String.valueOf(input[26]);
+        String s4 = String.valueOf(input[27]);
+        dstIP = s1 + "." + s2 + "." + s3 + "." + s4;
+
+        dstIP = dstIP.trim();
+        return Proxy_Entry_table.containsKey(dstIP);
+     }
+
     public byte[] RemoveARPHeader(byte[] input, int length) {
 //        byte[] cpyInput = new byte[length - 14];
 //        System.arraycopy(input, 14, cpyInput, 0, length - 14);

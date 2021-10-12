@@ -86,7 +86,7 @@ public class IPLayer implements BaseLayer {
         byte[] dstIP_bytearr = new byte[4];
         String[] byte_ip = dstIP.split("\\.");
         for (int i = 0; i < 4; i++) {
-            dstIP_bytearr[i] = (byte) Integer.parseInt(byte_ip[i], 16);
+            dstIP_bytearr[i] = (byte) Integer.parseInt(byte_ip[i], 10);
         }
         this.m_sHeader.ip_dst.addr = dstIP_bytearr;
 
