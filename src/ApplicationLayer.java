@@ -1,13 +1,15 @@
 import java.util.ArrayList;
 
+
 public class ApplicationLayer implements BaseLayer {
     public int nUpperLayerCount = 0;
     public String pLayerName = null;
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
-    _ARP_HEADER m_sHeader;
-    
-    private class _ARP_HEADER {
+    public int packet_size = 10;
+    _ARP_APP m_sHeader;
+        
+    private class _ARP_APP {
         byte[] app_totlen;
         byte app_type;
         byte app_unused;
@@ -52,21 +54,54 @@ public class ApplicationLayer implements BaseLayer {
     }
     
   /**/
-    public boolean Send(byte[] input, int length, String dstIP) {
-        byte[] bytes;
-        m_sHeader.app_totlen = intToByte2(length);
-        m_sHeader.app_type = (byte) (0x00);
-
-        if (length > 1456) {
-            // fragSend(input, length);
-        } else {
-            bytes = objToByte(m_sHeader, input, input.length);
-            this.GetUnderLayer().Send(bytes, bytes.length, dstIP);
-        }
+    private void fragSend(byte[] input, int length) { // 단편화
+    	byte[] bytes = new byte[packet_size];
+    	int i = 0;
+    	m_sHeader.app_totlen = intToByte2(length);
+    	m_sHeader.app_type = (byte) (0x01); // 단편화 시작 패킷
+    	
+    	System.arraycopy(input,  0 , bytes, 0, packet_size);
+    	bytes = objToByte(m_sHeader, bytes, packet_size);
+    	this.GetUnderLayer().Send(bytes, bytes.length);
+    	
+    	int maxLen = length / packet_size;
+    	
+    	m_sHeader.app_type = (byte) (0x02); // 단편화 중간 패킷
+    	m_sHeader.app_totlen = intToByte2(packet_size);
+    	for (i=1; i<maxLen; i++) {
+    		if(i+1<maxLen && length%10 == 0) {
+    			m_sHeader.app_type = (byte) (0x03); // 단편화 마지막 패킷
+    		}
+    		System.arraycopy(input, 10*i, bytes, 0, packet_size);
+    		bytes = objToByte(m_sHeader, bytes, packet_size);
+    		this.GetUnderLayer().Send(bytes, bytes.length);
+    	}
+    	if ( length % packet_size != 0) {
+    		m_sHeader.app_type = (byte) (0x03);  // 단편화 마지막 패킷
+    		m_sHeader.app_totlen = intToByte2(length%packet_size);
+    		bytes = new byte[length / packet_size];
+    		System.arraycopy(input,  length-(length%packet_size), bytes, 0, length%packet_size);
+    		bytes = objToByte(m_sHeader, bytes, bytes.length);
+    		this.GetUnderLayer().Send(bytes, bytes.length);
+    	}
+    }
+    
+    public boolean Send(byte[] input, int length) {
+    	byte[] bytes;
+    	m_sHeader.app_totlen = intToByte2(length);
+    	m_sHeader.app_type = (byte) (0x00);
+    
+    	if (length > 10) {
+    		// 단편화 실시 fragsSend(input, lenght);
+    	} else {
+    		bytes = objToByte(m_sHeader, input, input.length);
+    		this.GetUnderLayer().Send(bytes, bytes.length);
+    	}
         return true;
     }
  
     public synchronized boolean Receive(byte[] input) {
+    	
         return true;
     }
     
