@@ -112,6 +112,8 @@ public class ARPLayer implements BaseLayer {
         // TODO: Send 구현
         // arp테이블에서 이미 있는 ip인지 확인
         // 없으면 arp 테이블에 추가
+
+        // Send시에는 그냥 함수 파라미터 String dstIP만 넘겨서 해당 IP가 해시테이블에 있는지 확인하면 됩니다
         if(!ARP_Cache_table.containsKey(dstIP)) {
             addARPEntry(dstIP);
         }
@@ -137,6 +139,13 @@ public class ARPLayer implements BaseLayer {
         ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
     }
 
+    public static void deleteAllARPEntry() {
+        ARP_Cache_table.clear();
+
+        // GUI update
+        ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
+    }
+
     // 새 proxy host를 해시테이블에 추가하는 함수
     public static void addProxyEntry(String hostName, String ip, byte[] addr) {
         _Proxy_Entry newItem = new _Proxy_Entry(addr, hostName);
@@ -154,8 +163,23 @@ public class ARPLayer implements BaseLayer {
         ARPDlg.UpdateProxyEntryWindow(Proxy_Entry_table);
     }
 
+    // ARPLayer가 받은 패킷의 ARP Header에서 dstIP를 확인하고
+    // proxy table에 있는지 확인하는 함수
+    public boolean IsProxyHost(byte[] input) {
+        // 패킷으로부터 dstIP 추출
+        String dstIP;
+        String s1 = String.valueOf(input[24]);
+        String s2 = String.valueOf(input[25]);
+        String s3 = String.valueOf(input[26]);
+        String s4 = String.valueOf(input[27]);
+        dstIP = s1 + "." + s2 + "." + s3 + "." + s4;
+
+        dstIP = dstIP.trim();
+        return Proxy_Entry_table.containsKey(dstIP);
+     }
+
     public byte[] RemoveARPHeader(byte[] input, int length) {
-        byte[] cpyInput = new byte[length - 14];
+//        byte[] cpyInput = new byte[length - 14];
 //        System.arraycopy(input, 14, cpyInput, 0, length - 14);
 //        input = cpyInput;
         return input;

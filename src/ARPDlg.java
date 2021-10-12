@@ -139,8 +139,8 @@ public class ARPDlg extends JFrame implements BaseLayer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(e.getSource() == All_Delete_Button) {
-					// TODO: 전체 항목 삭제
-
+					// TODO: 전체 항목 삭제 - DONE
+					ARPLayer.deleteAllARPEntry();
 				}
 			}
 		});
@@ -222,10 +222,9 @@ public class ARPDlg extends JFrame implements BaseLayer {
 		}
 
 		NICComboBox.addActionListener(new ActionListener() {
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				//adapterNumber = NICComboBox.getSelectedIndex();
+				// adapterNumber = NICComboBox.getSelectedIndex();
 				JComboBox jcombo = (JComboBox) e.getSource();
 				adapterNumber = jcombo.getSelectedIndex();
 				System.out.println("Index: " + adapterNumber);
@@ -393,11 +392,13 @@ public class ARPDlg extends JFrame implements BaseLayer {
 					String hostEthernet = e_tf.getText();
 
 					// hostEthernet의 :를 빼고 byte배열로 변환
-					hostEthernet = hostEthernet.replace(":","");
-					byte[] hostEthernet_bytearr = hostEthernet.getBytes();
-
+					String[] byte_mac = hostEthernet.split(":|-");
+					byte[] hostMac = new byte[6];
+					for (int i = 0; i < 6; i++) {
+						hostMac[i] = (byte) Integer.parseInt(byte_mac[i], 16);
+					}
 					// ARPLayer의 Proxy Entry 테이블에 추가하도록 함
-					ARPLayer.addProxyEntry(hostName, hostIP, hostEthernet_bytearr);
+					ARPLayer.addProxyEntry(hostName, hostIP, hostMac);
 
 					d_tf.setText("");
 					ip_tf.setText("");
@@ -421,14 +422,14 @@ public class ARPDlg extends JFrame implements BaseLayer {
 				String mac = srcMacAddress.getText();
 				String ip = srcIPAddress.getText();
 
-				String[] byte_mac = mac.split("-");
+				String[] byte_mac = mac.split("-|:");
 				for (int i = 0; i < 6; i++) {
 					srcMAC[i] = (byte) Integer.parseInt(byte_mac[i], 16);
 				}
 
 				String[] byte_ip = ip.split("\\.");
 				for (int i = 0; i < 4; i++) {
-					srcIP[i] = (byte) Integer.parseInt(byte_ip[i], 16);
+					srcIP[i] = (byte) Integer.parseInt(byte_ip[i], 10);
 				}
 
 				// 하위 레이어에 srcIP, srcMac 헤더 세팅
@@ -501,18 +502,12 @@ public class ARPDlg extends JFrame implements BaseLayer {
 				} else {
 					// mac 주소 아는 경우=
 					// : 붙이기
-					macAddr_string += new String(new byte[] { macAddr_bytearray[0] })
-							+ new String(new byte[] { macAddr_bytearray[1] }) + ":";
-					macAddr_string += new String(new byte[] { macAddr_bytearray[2] })
-							+ new String(new byte[] { macAddr_bytearray[3] }) + ":";
-					macAddr_string += new String(new byte[] { macAddr_bytearray[4] })
-							+ new String(new byte[] { macAddr_bytearray[5] }) + ":";
-					macAddr_string += new String(new byte[] { macAddr_bytearray[6] })
-							+ new String(new byte[] { macAddr_bytearray[7] }) + ":";
-					macAddr_string += new String(new byte[] { macAddr_bytearray[8] })
-							+ new String(new byte[] { macAddr_bytearray[9] }) + ":";
-					macAddr_string += new String(new byte[] { macAddr_bytearray[10] })
-							+ new String(new byte[] { macAddr_bytearray[11] });
+					macAddr_string += String.format("%02X", (0xFF & macAddr_bytearray[0])) + ":"
+							+ String.format("%02X", (0xFF & macAddr_bytearray[1])) + ":"
+							+ String.format("%02X", (0xFF & macAddr_bytearray[2])) + ":"
+							+ String.format("%02X", (0xFF & macAddr_bytearray[3])) + ":"
+							+ String.format("%02X", (0xFF & macAddr_bytearray[4])) + ":"
+							+ String.format("%02X", (0xFF & macAddr_bytearray[5]));
 				}
 
 				String status = e.getValue().status? "complete" : "incomplete";		// status 정보
@@ -538,18 +533,12 @@ public class ARPDlg extends JFrame implements BaseLayer {
 				String macAddr_string = "";
 				byte[] macAddr_bytearray = e.getValue().addr;	// mac 주소
 				// : 붙이기
-				macAddr_string += new String(new byte[] { macAddr_bytearray[0] })
-						+ new String(new byte[] { macAddr_bytearray[1] }) + ":";
-				macAddr_string += new String(new byte[] { macAddr_bytearray[2] })
-						+ new String(new byte[] { macAddr_bytearray[3] }) + ":";
-				macAddr_string += new String(new byte[] { macAddr_bytearray[4] })
-						+ new String(new byte[] { macAddr_bytearray[5] }) + ":";
-				macAddr_string += new String(new byte[] { macAddr_bytearray[6] })
-						+ new String(new byte[] { macAddr_bytearray[7] }) + ":";
-				macAddr_string += new String(new byte[] { macAddr_bytearray[8] })
-						+ new String(new byte[] { macAddr_bytearray[9] }) + ":";
-				macAddr_string += new String(new byte[] { macAddr_bytearray[10] })
-						+ new String(new byte[] { macAddr_bytearray[11] });
+				macAddr_string += String.format("%02X", (0xFF & macAddr_bytearray[0])) + ":"
+						+ String.format("%02X", (0xFF & macAddr_bytearray[1])) + ":"
+						+ String.format("%02X", (0xFF & macAddr_bytearray[2])) + ":"
+						+ String.format("%02X", (0xFF & macAddr_bytearray[3])) + ":"
+						+ String.format("%02X", (0xFF & macAddr_bytearray[4])) + ":"
+						+ String.format("%02X", (0xFF & macAddr_bytearray[5]));
 
 				// Window에 표시될 최종 정보
 				String itemText = String.format("%-20s %-20s %-20s", hostName, ipAddr, macAddr_string);
