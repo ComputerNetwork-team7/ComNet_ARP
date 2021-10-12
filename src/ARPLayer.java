@@ -112,6 +112,8 @@ public class ARPLayer implements BaseLayer {
         // TODO: Send 구현
         // arp테이블에서 이미 있는 ip인지 확인
         // 없으면 arp 테이블에 추가
+
+        // Send시에는 그냥 함수 파라미터 String dstIP만 넘겨서 해당 IP가 해시테이블에 있는지 확인하면 됩니다
         if(!ARP_Cache_table.containsKey(dstIP)) {
             addARPEntry(dstIP);
         }
@@ -162,7 +164,7 @@ public class ARPLayer implements BaseLayer {
     }
 
     public byte[] RemoveARPHeader(byte[] input, int length) {
-        byte[] cpyInput = new byte[length - 14];
+//        byte[] cpyInput = new byte[length - 14];
 //        System.arraycopy(input, 14, cpyInput, 0, length - 14);
 //        input = cpyInput;
         return input;

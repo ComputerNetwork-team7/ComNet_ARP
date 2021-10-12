@@ -106,7 +106,7 @@ public class IPLayer implements BaseLayer {
         return true;
     }
 
-    public byte[] RemoveARPHeader(byte[] input, int length) {
+    public byte[] RemoveIPHeader(byte[] input, int length) {
         byte[] cpyInput = new byte[length - 20];
         System.arraycopy(input, 20, cpyInput, 0, length - 20);
         input = cpyInput;
