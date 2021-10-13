@@ -114,11 +114,33 @@ public class ARPLayer implements BaseLayer {
         // 없으면 arp 테이블에 추가
 
         // Send시에는 그냥 함수 파라미터 String dstIP만 넘겨서 해당 IP가 해시테이블에 있는지 확인하면 됩니다
-        if(!ARP_Cache_table.containsKey(dstIP)) {
+        if(!ARP_Cache_table.containsKey(dstIP)) {   // 테이블에 없는 경우(ARP전송)
+            // 엔트리 테이블에 추가
             addARPEntry(dstIP);
+            // EthernetLayer dstAddr를 Broadcast로 설정
+            byte[] dstAddr = new byte[6];
+            for(int i = 0; i < 6; i++) {
+                dstAddr[i] = (byte) 0xFF;
+            }
+            ((EthernetLayer) this.GetUnderLayer()).SetEnetDstAddress(dstAddr);
+            // TODO: Header 붙인 뒤 Send
+
+
+        } else if(ARP_Cache_table.containsKey(dstIP)) {
+            // 테이블에 있는데 MAC 주소를 모르는 경우
+            // 엔트리 테이블에 추가
+            addARPEntry(dstIP);
+            // EthernetLayer dstAddr를 Broadcast로 설정
+            byte[] dstAddr = new byte[6];
+            for(int i = 0; i < 6; i++) {
+                dstAddr[i] = (byte) 0xFF;
+            }
+            ((EthernetLayer) this.GetUnderLayer()).SetEnetDstAddress(dstAddr);
+            // TODO: Header 붙인 뒤 Send(테이블에 없는 경우와 같은 방법으로)
+
+            // 테이블에 있고 MAC 주소도 아는 경우 아무것도 하지 않음
         }
 
-        // 헤더 붙여서 하위 레이어에 전달
         return true;
     }
 
