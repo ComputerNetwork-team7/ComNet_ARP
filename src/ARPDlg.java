@@ -439,6 +439,8 @@ public class ARPDlg extends JFrame implements BaseLayer {
 				((EthernetLayer) m_LayerMgr.GetLayer("Ethernet")).SetEnetSrcAddress(srcMAC);
 
 				((NILayer) m_LayerMgr.GetLayer("NI")).SetAdapterNumber(adapterNumber);
+
+				System.out.println("Source ip, mac Set");
 			}
 		}
 	}
