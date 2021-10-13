@@ -114,9 +114,21 @@ public class IPLayer implements BaseLayer {
     }
 
     public synchronized boolean Receive(byte[] input) {
-        // TODO: Receive 구현
+        byte[] data;
+
+        data = RemoveIpHeader(input, input.length);
+        this.GetUpperLayer(0).Receive(data);
 
         return true;
+    }
+
+    public byte[] RemoveIpHeader(byte[] input, int length){
+        byte[] buff = new byte[length - 20];
+
+        for(int i = 0; i < length - 20; i++){
+            buff[i] = input[20 + i];
+        }
+        return buff;
     }
 
     private byte[] intToByte2(int value) {
