@@ -7,9 +7,9 @@ public class ApplicationLayer implements BaseLayer {
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
     public int packet_size = 10;
-    _ARP_APP m_sHeader;
+    _ARP_HEADER m_sHeader;
         
-    private class _ARP_APP {
+    private class _ARP_HEADER {
         byte[] app_totlen;
         byte app_type;
         byte app_unused;
@@ -69,10 +69,10 @@ public class ApplicationLayer implements BaseLayer {
     	m_sHeader.app_type = (byte) (0x02); // 단편화 중간 패킷
     	m_sHeader.app_totlen = intToByte2(packet_size);
     	for (i=1; i<maxLen; i++) {
-    		if(i+1<maxLen && length%10 == 0) {
+    		if(i+1<maxLen && length%packet_size == 0) {
     			m_sHeader.app_type = (byte) (0x03); // 단편화 마지막 패킷
     		}
-    		System.arraycopy(input, 10*i, bytes, 0, packet_size);
+    		System.arraycopy(input, packet_size*i, bytes, 0, packet_size);
     		bytes = objToByte(m_sHeader, bytes, packet_size);
     		this.GetUnderLayer().Send(bytes, bytes.length);
     	}
@@ -91,8 +91,8 @@ public class ApplicationLayer implements BaseLayer {
     	m_sHeader.app_totlen = intToByte2(length);
     	m_sHeader.app_type = (byte) (0x00);
     
-    	if (length > 10) {
-    		// 단편화 실시 fragsSend(input, lenght);
+    	if (length > packet_size) {
+    		fragSend(input, length);
     	} else {
     		bytes = objToByte(m_sHeader, input, input.length);
     		this.GetUnderLayer().Send(bytes, bytes.length);
