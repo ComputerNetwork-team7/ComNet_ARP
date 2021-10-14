@@ -120,7 +120,7 @@ public class ARPLayer implements BaseLayer {
         return buf;
     }
     // ARP Request 
-    public boolean Send(String dstIP) {
+    public boolean Send(byte[] input, int length, String dstIP) {
         // TODO: Send 구현
         // 엔트리 테이블에서 이미 있는 IP인지 확인
         // 없으면 엔트리 테이블에 추가
