@@ -94,39 +94,57 @@ public class ARPLayer implements BaseLayer {
         }
     }
 
-    public byte[] ObjToByte(_ARP_HEADER Header, byte[] input, int length) {//data�� ��� �ٿ��ֱ�
-        byte[] buf = new byte[length + 14];
-//        for(int i = 0; i < 6; i++) {
-//            buf[i] = Header.enet_dstaddr.addr[i];
-//            buf[i+6] = Header.enet_srcaddr.addr[i];
-//        }
-//        buf[12] = Header.enet_type[0];
-//        buf[13] = Header.enet_type[1];
-//        for (int i = 0; i < length; i++)
-//            buf[14 + i] = input[i];
-
+    public byte[] ObjToByte(_ARP_HEADER Header) {//data�� ��� �ٿ��ֱ�
+        byte[] buf = new byte[28];	
+        
+        buf[0] = Header.macType[0];
+        buf[1] = Header.macType[1];
+        buf[2] = Header.ipType[0];
+        buf[3] = Header.ipType[1];
+        buf[4] = Header.macAddrLen;
+        buf[5] = Header.ipAddrLen;
+        buf[6] = Header.opcode[0];
+        buf[7] = Header.opcode[1];
+        for (int i =0; i<6; i++) {
+        	buf[8+i] = Header.srcMac.addr[i];
+        }
+        for (int i =0; i<4; i++) {
+        	buf[14+i] = Header.srcIp.addr[i];
+        }
+        for (int i =0; i<6; i++) {
+        	buf[18+i] = Header.dstMac.addr[i];
+        }
+        for (int i =0; i<4; i++) {
+        	buf[24+i] = Header.srcIp.addr[i];
+        }
         return buf;
     }
-
-    public boolean Send(byte[] input, int length, String dstIP) {
+    // ARP Request 
+    public boolean Send(String dstIP) {
         // TODO: Send 구현
-        // arp테이블에서 이미 있는 ip인지 확인
-        // 없으면 arp 테이블에 추가
+        // 엔트리 테이블에서 이미 있는 IP인지 확인
+        // 없으면 엔트리 테이블에 추가
 
-        // Send시에는 그냥 함수 파라미터 String dstIP만 넘겨서 해당 IP가 해시테이블에 있는지 확인하면 됩니다
         if(!ARP_Cache_table.containsKey(dstIP)) {   // 테이블에 없는 경우(ARP전송)
             // 엔트리 테이블에 추가
             addARPEntry(dstIP);
             // EthernetLayer dstAddr를 Broadcast로 설정
             byte[] dstAddr = new byte[6];
-            for(int i = 0; i < 6; i++) {
+            for(int i = 0; i < 6; i++) {	// FF-FF-FF-FF-FF-FF ( Broadcast )
                 dstAddr[i] = (byte) 0xFF;
             }
             ((EthernetLayer) this.GetUnderLayer()).SetEnetDstAddress(dstAddr);
-            // TODO: Header 붙인 뒤 Send
-
-
-        } else if(ARP_Cache_table.containsKey(dstIP)) {
+            
+            m_sHeader.macType = intToByte2(1);	// Hardwaretype : Ethernet
+            m_sHeader.ipType = intToByte2(8);	// IP field 	: 0x0800
+            m_sHeader.macAddrLen = (byte) 0x06;	// Mac Address 	: 6 bytes
+            m_sHeader.ipAddrLen = (byte) 0x04;	// Ip Address 	: 4 bytes
+            m_sHeader.opcode = intToByte2(1);	// ARP request 	: 0x01
+            byte[] bytes = ObjToByte(m_sHeader);
+            
+            this.GetUnderLayer().Send(bytes, bytes.length);
+            
+        } /* else if(ARP_Cache_table.containsKey(dstIP)) {
             // 테이블에 있는데 MAC 주소를 모르는 경우
             // 엔트리 테이블에 추가
             addARPEntry(dstIP);
@@ -136,12 +154,24 @@ public class ARPLayer implements BaseLayer {
                 dstAddr[i] = (byte) 0xFF;
             }
             ((EthernetLayer) this.GetUnderLayer()).SetEnetDstAddress(dstAddr);
-            // TODO: Header 붙인 뒤 Send(테이블에 없는 경우와 같은 방법으로)
-
-            // 테이블에 있고 MAC 주소도 아는 경우 아무것도 하지 않음
+            // TODO: Header 붙인 뒤 Send ( 엔트리테이블에 없을때와 똑같이 동작 )           
+        } */
+        
+        else {
+        	// 테이블에 있고 MAC 주소도 아는 경우 아무것도 하지 않음
+        	return true;
         }
 
         return true;
+    }
+    // ARP Reply : receive에서 src주소와 dst주소를 뒤집은 Frame에 OPCODE 수정하여 반환함
+    public boolean Send(byte[] reply_pack, String dstIp ) {
+    	byte[] temp = intToByte2(2);	// ARP Reply	: 0x02
+    	reply_pack[6] = temp[0];	
+    	reply_pack[7] = temp[1];	
+    	this.GetUnderLayer().Send(reply_pack, reply_pack.length);
+    	
+    	return true;
     }
 
     // arp cache entry를 해시테이블에 추가하는 함수
