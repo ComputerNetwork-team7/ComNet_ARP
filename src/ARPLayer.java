@@ -165,7 +165,7 @@ public class ARPLayer implements BaseLayer {
         return true;
     }
     // ARP Reply : receive에서 src주소와 dst주소를 뒤집은 Frame에 OPCODE 수정하여 반환함
-    public boolean Send(byte[] reply_pack, String dstIp ) {
+    public boolean Send(byte[] reply_pack) {
     	byte[] temp = intToByte2(2);	// ARP Reply	: 0x02
     	reply_pack[6] = temp[0];	
     	reply_pack[7] = temp[1];	
