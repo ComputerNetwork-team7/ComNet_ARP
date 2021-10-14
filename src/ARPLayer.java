@@ -115,7 +115,7 @@ public class ARPLayer implements BaseLayer {
         	buf[18+i] = Header.dstMac.addr[i];
         }
         for (int i =0; i<4; i++) {
-        	buf[24+i] = Header.srcIp.addr[i];
+        	buf[24+i] = Header.dstIp.addr[i];
         }
         return buf;
     }
@@ -260,6 +260,10 @@ public class ARPLayer implements BaseLayer {
 
     public void SetSrcIPAddress(byte[] srcAddress) {
         m_sHeader.srcIp.addr = srcAddress;
+    }
+
+    public void SetDstIPAddress(byte[] dstAddress) {
+        m_sHeader.dstIp.addr = dstAddress;
     }
 
 

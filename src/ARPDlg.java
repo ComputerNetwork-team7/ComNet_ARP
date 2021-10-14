@@ -455,6 +455,14 @@ public class ARPDlg extends JFrame implements BaseLayer {
 				// TODO: ARP Send 버튼 클릭 이벤트 처리 2 - 패킷 전송(Send) 구현
 				String dstIP = targetIPWrite.getText();
 
+				byte[] dstIP_bytearr = new byte[4];
+				String[] byte_ip = dstIP.split("\\.");
+				for (int i = 0; i < 4; i++) {
+					dstIP_bytearr[i] = (byte) Integer.parseInt(byte_ip[i], 10);
+				}
+				((ARPLayer) m_LayerMgr.GetLayer("ARP")).SetDstIPAddress(dstIP_bytearr);
+
+				// AppLayer로 전송
 				String input = "";	// data
 				byte[] bytes = input.getBytes();
 				((ApplicationLayer) m_LayerMgr.GetLayer("Application")).Send(bytes, bytes.length, dstIP);
