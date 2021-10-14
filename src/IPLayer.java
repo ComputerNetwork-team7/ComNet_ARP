@@ -116,20 +116,20 @@ public class IPLayer implements BaseLayer {
     public synchronized boolean Receive(byte[] input) {
         byte[] data;
 
-        data = RemoveIpHeader(input, input.length);
+        data = RemoveIPHeader(input, input.length);
         this.GetUpperLayer(0).Receive(data);
 
         return true;
     }
 
-    public byte[] RemoveIpHeader(byte[] input, int length){
+    /*public byte[] RemoveIpHeader(byte[] input, int length){
         byte[] buff = new byte[length - 20];
 
         for(int i = 0; i < length - 20; i++){
             buff[i] = input[20 + i];
         }
         return buff;
-    }
+    }*/
 
     private byte[] intToByte2(int value) {
         byte[] temp = new byte[2];
