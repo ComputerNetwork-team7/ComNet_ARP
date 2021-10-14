@@ -6,8 +6,11 @@ public class ApplicationLayer implements BaseLayer {
     public String pLayerName = null;
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
-    public int packet_size = 10;
+    public int packet_size = 1456;	// max packet size = 1456 bytes
     _ARP_HEADER m_sHeader;
+    
+    private byte[] fragBytes;
+	private int fragCount = 0;
         
     private class _ARP_HEADER {
         byte[] app_totlen;
@@ -79,7 +82,7 @@ public class ApplicationLayer implements BaseLayer {
     	if ( length % packet_size != 0) {
     		m_sHeader.app_type = (byte) (0x03);  // 단편화 마지막 패킷
     		m_sHeader.app_totlen = intToByte2(length%packet_size);
-    		bytes = new byte[length / packet_size];
+    		bytes = new byte[length % packet_size];
     		System.arraycopy(input,  length-(length%packet_size), bytes, 0, length%packet_size);
     		bytes = objToByte(m_sHeader, bytes, bytes.length);
     		this.GetUnderLayer().Send(bytes, bytes.length);
@@ -101,8 +104,34 @@ public class ApplicationLayer implements BaseLayer {
     }
  
     public synchronized boolean Receive(byte[] input) {
-    	
-        return true;
+    	/*
+    	 * ApplicationLayer의 Receive 함수
+    	 * IPLayer로부터 받은 데이터의 헤더를 제거하고
+    	 * GUILayer의 Receive 함수를 호출함
+    	 */
+    	byte[] data, tempBytes;
+		int tempType = 0;
+
+		tempType |= (byte) (input[2] & 0xFF);
+		if (tempType == 0) {	// 단편화되지 않은 데이터, ARP 동작은 여기에 해당
+			data = RemoveappHeader(input, input.length);
+			this.GetUpperLayer(0).Receive(data);
+		} else {	// 단편화된 데이터
+			if (tempType == 1) {	// 단편화된 데이터의 첫 부분
+				int size = byte2ToInt(input[0], input[1]);
+				fragBytes = new byte[size];
+				fragCount = 1;
+				tempBytes = RemoveappHeader(input, input.length);
+				System.arraycopy(tempBytes, 0, fragBytes, 0, packet_size);
+			} else {	// 단편화된 데이터의 중간 부분
+				tempBytes = RemoveappHeader(input, input.length);
+				System.arraycopy(tempBytes, 0, fragBytes, (fragCount++) * packet_size, byte2ToInt(input[0], input[1]));
+				if (tempType == 3) {	// 단편화된 데이터의 끝 부분
+					this.GetUpperLayer(0).Receive(fragBytes);
+				}
+			}
+		}
+		return true;
     }
     
     private byte[] intToByte2(int value) {
@@ -114,7 +143,7 @@ public class ApplicationLayer implements BaseLayer {
     }
 
     private int byte2ToInt(byte value1, byte value2) {
-        return (int)((value1 << 8) | (value2));
+    	return 0x0000FF00 & (value1 << 8) | 0x000000FF & value2;
     }
 
     @Override
