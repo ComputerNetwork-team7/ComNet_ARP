@@ -86,7 +86,7 @@ public class ApplicationLayer implements BaseLayer {
     	}
     }
     
-    public boolean Send(byte[] input, int length) {
+    public boolean Send(byte[] input, int length, String dstIP) {
     	byte[] bytes;
     	m_sHeader.app_totlen = intToByte2(length);
     	m_sHeader.app_type = (byte) (0x00);
@@ -95,7 +95,7 @@ public class ApplicationLayer implements BaseLayer {
     		fragSend(input, length);
     	} else {
     		bytes = objToByte(m_sHeader, input, input.length);
-    		this.GetUnderLayer().Send(bytes, bytes.length);
+    		this.GetUnderLayer().Send(bytes, bytes.length, dstIP);
     	}
         return true;
     }
