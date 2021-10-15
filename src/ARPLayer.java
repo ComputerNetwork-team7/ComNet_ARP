@@ -8,7 +8,7 @@ public class ARPLayer implements BaseLayer {
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
 
     // Key: IP 주소
-    public static Hashtable<String, _ARP_Cache_Entry> ARP_Cache_table = new Hashtable<>();
+    public static Hashtable<String, _ARP_Cache_Entry> ARP_Cache_table = new Hashtable<>();// 우변 꺾쇠안에 타입 명시와 타입 명시하지 않는 차이가??
     public static Hashtable<String, _Proxy_Entry> Proxy_Entry_table = new Hashtable<>();
 
     _ARP_HEADER m_sHeader;
@@ -94,7 +94,7 @@ public class ARPLayer implements BaseLayer {
         }
     }
 
-    public byte[] ObjToByte(_ARP_HEADER Header) {//data�� ��� �ٿ��ֱ�
+    public byte[] ObjToByte(_ARP_HEADER Header) {
         byte[] buf = new byte[28];	
         
         buf[0] = Header.macType[0];
@@ -174,6 +174,7 @@ public class ARPLayer implements BaseLayer {
     	return true;
     }
 
+
     // arp cache entry를 해시테이블에 추가하는 함수
     public static void addARPEntry(String ip_key) {
         _ARP_Cache_Entry newItem = new _ARP_Cache_Entry(null, false, 3);
@@ -231,17 +232,76 @@ public class ARPLayer implements BaseLayer {
      }
 
     public byte[] RemoveARPHeader(byte[] input, int length) {
-//        byte[] cpyInput = new byte[length - 14];
-//        System.arraycopy(input, 14, cpyInput, 0, length - 14);
-//        input = cpyInput;
+        byte[] cpyInput = new byte[length - 28];
+        System.arraycopy(input, 28, cpyInput, 0, length - 28);
+        input = cpyInput;
         return input;
     }
 
-    public synchronized boolean Receive(byte[] input) {
+    // Src HardWare 및 Protocol Address와 Dst HardWare 및 Protocol Address Swap함수 
+    // index 교체 => 8 ~ 17 <-> 18 ~ 27
+    public byte[] swap(byte[] input){
+        int start = 8; 
+        for(int i = start; i < start + 10; i ++){
+            byte[] temp = input[i];
+            input[i] = input[i+10];
+            input[i+10] = temp
+        }
+        return input;
+    }
 
+    /*-------------------내 IP 확실히 하고 작성.-----------------*/ 
+    public boolean checkAddressWithMyIp(byte[] dstIp){
+        // 인자로 들어온 dstIP와 현재 Host의 Ip가 다르면 False 반환 
+        // 같은경우 True 반환.
+    }
+
+    public synchronized boolean Receive(byte[] input) {
+        byte[] srcMac = new byte[6];
+        byte[] srcIp = new byte[4];
+		byte[] dstMac = new byte[6];
+		byte[] dstIp = new byte[4];
+        System.arraycopy(input, 8, srcMac, 0, 6);
+		System.arraycopy(input, 14, srcIp, 0, 4);
+		System.arraycopy(input, 18, dstMac, 0, 6);
+		System.arraycopy(input, 24, dstIp, 0, 4);
+        String ipKey = ipByteToString(srcIp);
+
+        //opcode == 1인경우 basic ARP or proxy ARP
+        if(input[7] == 0x01){
+            if(checkAddressWithMyIp(dstIp) || Proxy_Entry_table.containsKey(dstIp)){ // 자신의 주소와 같거나 혹은 Proxytable에 있는지 검사.
+                _ARP_Cache_Entry entry = new _ARP_Cache_Entry(srcMac, "Complete", 30);
+                ARP_Cache_table.put(ipKey, entry); // hashtable 원소 => <String, entry>
+                byte[] swappedInput = swap(input);
+                Send(swappedInput);
+            }
+            // 위 if문 내 자신의 Mac Address 추가해야함.
+            // 자신의 Mac & Ip는 어디 저장되어 있는지??
+
+            else{//자신과 상관없는 경우 => G-ARP 및 BroadCast
+                if(ARP_Cache_table.containsKey(ipKey)){
+                    _ARP_Cache_Entry entry = ARP_Cache_table.get(ipKey);
+                    System.arraycopy(srcMac, 0, entry.addr, 0 , 6);
+                    ARP_Cache_table.replace(ipKey, entry);
+                }
+                else if(){
+                    
+                }   
+            }
+        }
+        // ARP Reply 인 경우.
+        else if (input[7] == 0x02) {
+            if(checkAddressWithMyIp(dstIp)){
+                _ARP_Cache_Entry entry = ARP_Cache_table.get(ipKey);
+                entry.addr = srcMac;
+                entry.status = "Complete";
+                ARP_Cache_table.replace(ipKey, entry);
+            }
+        }
         return true;
     }
 
+    
     private byte[] intToByte2(int value) {
         byte[] temp = new byte[2];
         temp[0] |= (byte) ((value & 0xFF00) >> 8);
@@ -304,5 +364,13 @@ public class ARPLayer implements BaseLayer {
     public void SetUpperUnderLayer(BaseLayer pUULayer) {
         this.SetUpperLayer(pUULayer);
         pUULayer.SetUnderLayer(this);
+    }
+
+    public String ipByteToString(byte[] something){
+        String temp = "";
+        for (byte b : something){
+            temp += Integer.toString(b & 0xFF) + "."; //0xff = 11111111(2) byte 정수변환
+        }
+        return temp.substring(0,something.length() - 1);
     }
 }
