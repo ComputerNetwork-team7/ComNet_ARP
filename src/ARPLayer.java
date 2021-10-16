@@ -297,9 +297,6 @@ public class ARPLayer implements BaseLayer {
                     ARP_Cache_table.replace(srcIP_string, entry);
                     ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
                 }
-                else if(true){
-
-                }
             }
         }
         // ARP Reply 인 경우.
