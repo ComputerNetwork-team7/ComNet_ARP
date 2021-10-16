@@ -242,10 +242,11 @@ public class ARPLayer implements BaseLayer {
     // index 교체 => 8 ~ 17 <-> 18 ~ 27
     public byte[] swap(byte[] input){
         int start = 8; 
+        byte[] temp = new byte[10];
         for(int i = start; i < start + 10; i ++){
-            byte[] temp = input[i];
+            temp[i] = input[i];
             input[i] = input[i+10];
-            input[i+10] = temp
+            input[i+10] = temp[i];
         }
         return input;
     }
@@ -254,6 +255,7 @@ public class ARPLayer implements BaseLayer {
     public boolean checkAddressWithMyIp(byte[] dstIp){
         // 인자로 들어온 dstIP와 현재 Host의 Ip가 다르면 False 반환 
         // 같은경우 True 반환.
+    	return true;
     }
 
     public synchronized boolean Receive(byte[] input) {
@@ -371,6 +373,6 @@ public class ARPLayer implements BaseLayer {
         for (byte b : something){
             temp += Integer.toString(b & 0xFF) + "."; //0xff = 11111111(2) byte 정수변환
         }
-        return temp.substring(0,something.length() - 1);
+        return temp.substring(0,something.length - 1);
     }
 }
