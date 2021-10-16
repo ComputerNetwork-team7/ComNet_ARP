@@ -120,8 +120,8 @@ public class IPLayer implements BaseLayer {
 
         return true;
     }
-    //ARPLayer의 G-ARP send 함수 호출
-    public boolean GARPsend(){
+    //ARPLayer의 G-ARP Send 함수 호출
+    public boolean GARPSend(){
         ((ARPLayer)((EthernetLayer)this.GetUnderLayer()).GetUpperLayer(0)).GARPSend();
 
         return true;
