@@ -144,19 +144,7 @@ public class ARPLayer implements BaseLayer {
             
             this.GetUnderLayer().Send(bytes, bytes.length);
             
-        } /* else if(ARP_Cache_table.containsKey(dstIP)) {
-            // 테이블에 있는데 MAC 주소를 모르는 경우
-            // 엔트리 테이블에 추가
-            addARPEntry(dstIP);
-            // EthernetLayer dstAddr를 Broadcast로 설정
-            byte[] dstAddr = new byte[6];
-            for(int i = 0; i < 6; i++) {
-                dstAddr[i] = (byte) 0xFF;
-            }
-            ((EthernetLayer) this.GetUnderLayer()).SetEnetDstAddress(dstAddr);
-            // TODO: Header 붙인 뒤 Send ( 엔트리테이블에 없을때와 똑같이 동작 )           
-        } */
-        
+        }         
         else {
         	// 테이블에 있고 MAC 주소도 아는 경우 아무것도 하지 않음
         	return true;
@@ -231,13 +219,6 @@ public class ARPLayer implements BaseLayer {
         return Proxy_Entry_table.containsKey(dstIP);
      }
 
-    public byte[] RemoveARPHeader(byte[] input, int length) {
-        byte[] cpyInput = new byte[length - 28];
-        System.arraycopy(input, 28, cpyInput, 0, length - 28);
-        input = cpyInput;
-        return input;
-    }
-
     // Src HardWare 및 Protocol Address와 Dst HardWare 및 Protocol Address Swap함수 
     // index 교체 => 8 ~ 17 <-> 18 ~ 27
     public byte[] swap(byte[] input){
@@ -296,9 +277,6 @@ public class ARPLayer implements BaseLayer {
                     System.arraycopy(srcMac, 0, entry.addr, 0 , 6);
                     ARP_Cache_table.replace(srcIP_string, entry);
                     ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
-                }
-                else if(true){
-
                 }
             }
         }
