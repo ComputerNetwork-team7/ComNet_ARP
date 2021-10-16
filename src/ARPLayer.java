@@ -219,13 +219,6 @@ public class ARPLayer implements BaseLayer {
         return Proxy_Entry_table.containsKey(dstIP);
      }
 
-    public byte[] RemoveARPHeader(byte[] input, int length) {
-        byte[] cpyInput = new byte[length - 28];
-        System.arraycopy(input, 28, cpyInput, 0, length - 28);
-        input = cpyInput;
-        return input;
-    }
-
     // Src HardWare 및 Protocol Address와 Dst HardWare 및 Protocol Address Swap함수 
     // index 교체 => 8 ~ 17 <-> 18 ~ 27
     public byte[] swap(byte[] input){
