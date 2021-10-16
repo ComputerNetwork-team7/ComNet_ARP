@@ -144,19 +144,7 @@ public class ARPLayer implements BaseLayer {
             
             this.GetUnderLayer().Send(bytes, bytes.length);
             
-        } /* else if(ARP_Cache_table.containsKey(dstIP)) {
-            // 테이블에 있는데 MAC 주소를 모르는 경우
-            // 엔트리 테이블에 추가
-            addARPEntry(dstIP);
-            // EthernetLayer dstAddr를 Broadcast로 설정
-            byte[] dstAddr = new byte[6];
-            for(int i = 0; i < 6; i++) {
-                dstAddr[i] = (byte) 0xFF;
-            }
-            ((EthernetLayer) this.GetUnderLayer()).SetEnetDstAddress(dstAddr);
-            // TODO: Header 붙인 뒤 Send ( 엔트리테이블에 없을때와 똑같이 동작 )           
-        } */
-        
+        }         
         else {
         	// 테이블에 있고 MAC 주소도 아는 경우 아무것도 하지 않음
         	return true;
