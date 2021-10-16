@@ -221,10 +221,10 @@ public class ARPLayer implements BaseLayer {
     public boolean IsProxyHost(byte[] input) {
         // 패킷으로부터 dstIP 추출
         String dstIP;
-        String s1 = String.valueOf(input[24]);
-        String s2 = String.valueOf(input[25]);
-        String s3 = String.valueOf(input[26]);
-        String s4 = String.valueOf(input[27]);
+        String s1 = String.valueOf(input[24] & 0xFF);
+        String s2 = String.valueOf(input[25] & 0xFF);
+        String s3 = String.valueOf(input[26] & 0xFF);
+        String s4 = String.valueOf(input[27] & 0xFF);
         dstIP = s1 + "." + s2 + "." + s3 + "." + s4;
 
         dstIP = dstIP.trim();
@@ -242,10 +242,10 @@ public class ARPLayer implements BaseLayer {
     // index 교체 => 8 ~ 17 <-> 18 ~ 27
     public byte[] swap(byte[] input){
         int start = 8; 
-        for(int i = start; i < start + 10; i ++){
-            byte[] temp = input[i];
+        for(int i = start; i < start + 10; i++){
+            byte temp = input[i];
             input[i] = input[i+10];
-            input[i+10] = temp
+            input[i+10] = temp;
         }
         return input;
     }
@@ -254,24 +254,31 @@ public class ARPLayer implements BaseLayer {
     public boolean checkAddressWithMyIp(byte[] dstIp){
         // 인자로 들어온 dstIP와 현재 Host의 Ip가 다르면 False 반환 
         // 같은경우 True 반환.
+        for(int i = 0; i < 4; i++) {
+            if(m_sHeader.srcIp.addr[i] != dstIp[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public synchronized boolean Receive(byte[] input) {
         byte[] srcMac = new byte[6];
         byte[] srcIp = new byte[4];
-		byte[] dstMac = new byte[6];
-		byte[] dstIp = new byte[4];
+        byte[] dstMac = new byte[6];
+        byte[] dstIp = new byte[4];
         System.arraycopy(input, 8, srcMac, 0, 6);
-		System.arraycopy(input, 14, srcIp, 0, 4);
-		System.arraycopy(input, 18, dstMac, 0, 6);
-		System.arraycopy(input, 24, dstIp, 0, 4);
+        System.arraycopy(input, 14, srcIp, 0, 4);
+        System.arraycopy(input, 18, dstMac, 0, 6);
+        System.arraycopy(input, 24, dstIp, 0, 4);
         String ipKey = ipByteToString(srcIp);
 
         //opcode == 1인경우 basic ARP or proxy ARP
         if(input[7] == 0x01){
             if(checkAddressWithMyIp(dstIp) || Proxy_Entry_table.containsKey(dstIp)){ // 자신의 주소와 같거나 혹은 Proxytable에 있는지 검사.
-                _ARP_Cache_Entry entry = new _ARP_Cache_Entry(srcMac, "Complete", 30);
+                _ARP_Cache_Entry entry = new _ARP_Cache_Entry(srcMac, true, 30);
                 ARP_Cache_table.put(ipKey, entry); // hashtable 원소 => <String, entry>
+                ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
                 byte[] swappedInput = swap(input);
                 Send(swappedInput);
             }
@@ -283,10 +290,11 @@ public class ARPLayer implements BaseLayer {
                     _ARP_Cache_Entry entry = ARP_Cache_table.get(ipKey);
                     System.arraycopy(srcMac, 0, entry.addr, 0 , 6);
                     ARP_Cache_table.replace(ipKey, entry);
+                    ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
                 }
-                else if(){
-                    
-                }   
+                else if(true){
+
+                }
             }
         }
         // ARP Reply 인 경우.
@@ -294,8 +302,9 @@ public class ARPLayer implements BaseLayer {
             if(checkAddressWithMyIp(dstIp)){
                 _ARP_Cache_Entry entry = ARP_Cache_table.get(ipKey);
                 entry.addr = srcMac;
-                entry.status = "Complete";
+                entry.status = true;
                 ARP_Cache_table.replace(ipKey, entry);
+                ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
             }
         }
         return true;
@@ -371,6 +380,6 @@ public class ARPLayer implements BaseLayer {
         for (byte b : something){
             temp += Integer.toString(b & 0xFF) + "."; //0xff = 11111111(2) byte 정수변환
         }
-        return temp.substring(0,something.length() - 1);
+        return temp.substring(0, temp.length() - 1);
     }
 }
