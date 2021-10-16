@@ -81,6 +81,14 @@ public class IPLayer implements BaseLayer {
         return buf;
     }
 
+    public boolean chkIfMyIP(byte[] ip) {
+        for(int i = 0; i < 4; i++) {
+            if(m_sHeader.ip_src.addr[i] != ip[i])
+                return false;
+        }
+        return true;
+    }
+
     public boolean Send(byte[] input, int length, String dstIP) {
         // Header ip_dst Setting
         byte[] dstIP_bytearr = new byte[4];
@@ -89,6 +97,13 @@ public class IPLayer implements BaseLayer {
             dstIP_bytearr[i] = (byte) Integer.parseInt(byte_ip[i], 10);
         }
         this.m_sHeader.ip_dst.addr = dstIP_bytearr;
+
+        if(chkIfMyIP(dstIP_bytearr)){
+            // 내 IP이면 아무것도 안함
+            // ARP Send에서 dstIP가 자기자신이면 보내지 않아야 하므로
+            // GARP는 따로 GARPSend() 함수를 만드는게 좋을 것 같아요
+            return true;
+        }
 
         // Send
         byte[] bytes;
