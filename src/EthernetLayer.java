@@ -86,6 +86,23 @@ public class EthernetLayer implements BaseLayer {
 		input = cpyInput;
 		return input;
 	}
+
+	// ARP Reply Send 함수
+	public boolean ARPReplySend(byte[] input, int length) {
+		// ARP Packet의 dst Mac을 enet_dst 설정
+		for(int i = 0; i < 6; i++) {
+			m_sHeader.enet_dstaddr.addr[i] = input[18+i];
+		}
+		// arp 프로토콜으로 설정
+		m_sHeader.enet_type[0] = (byte) 0x08;
+		m_sHeader.enet_type[1] = (byte) 0x06;
+
+		// data에 헤더를 붙여서 Send
+		byte[] bytes = ObjToByte(m_sHeader, input, length);
+		this.GetUnderLayer().Send(bytes, length + 14);
+		return true;
+
+	}
 	
 	// 수신 함수
 	public synchronized boolean Receive(byte[] input) {
