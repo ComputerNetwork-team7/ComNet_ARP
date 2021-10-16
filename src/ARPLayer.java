@@ -168,8 +168,8 @@ public class ARPLayer implements BaseLayer {
     public boolean Send(byte[] reply_pack) {
     	byte[] temp = intToByte2(2);	// ARP Reply	: 0x02
     	reply_pack[6] = temp[0];	
-    	reply_pack[7] = temp[1];	
-    	this.GetUnderLayer().Send(reply_pack, reply_pack.length);
+    	reply_pack[7] = temp[1];
+        ((EthernetLayer)this.GetUnderLayer()).ARPReplySend(reply_pack, reply_pack.length);
     	
     	return true;
     }
@@ -246,6 +246,10 @@ public class ARPLayer implements BaseLayer {
             byte temp = input[i];
             input[i] = input[i+10];
             input[i+10] = temp;
+        }
+        // srcMac 설정
+        for(int i = 0; i < 6; i++) {
+            input[8+i] = m_sHeader.srcMac.addr[i];
         }
         return input;
     }
