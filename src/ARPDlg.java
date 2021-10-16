@@ -523,7 +523,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
 				String status = e.getValue().status? "complete" : "incomplete";		// status 정보
 
 				// Window에 표시될 최종 정보
-				String itemText = String.format("%-20s %-20s %-20s", targetIP, macAddr_string, "incomplete");
+				String itemText = String.format("%-20s %-20s %-20s", targetIP, macAddr_string, status);
 
 				model_arp.addElement(itemText);
 			}

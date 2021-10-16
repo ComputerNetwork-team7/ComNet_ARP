@@ -265,12 +265,12 @@ public class ARPLayer implements BaseLayer {
     public synchronized boolean Receive(byte[] input) {
         byte[] srcMac = new byte[6];
         byte[] srcIp = new byte[4];
-		byte[] dstMac = new byte[6];
-		byte[] dstIp = new byte[4];
+        byte[] dstMac = new byte[6];
+        byte[] dstIp = new byte[4];
         System.arraycopy(input, 8, srcMac, 0, 6);
-		System.arraycopy(input, 14, srcIp, 0, 4);
-		System.arraycopy(input, 18, dstMac, 0, 6);
-		System.arraycopy(input, 24, dstIp, 0, 4);
+        System.arraycopy(input, 14, srcIp, 0, 4);
+        System.arraycopy(input, 18, dstMac, 0, 6);
+        System.arraycopy(input, 24, dstIp, 0, 4);
         String ipKey = ipByteToString(srcIp);
 
         //opcode == 1인경우 basic ARP or proxy ARP
@@ -278,6 +278,7 @@ public class ARPLayer implements BaseLayer {
             if(checkAddressWithMyIp(dstIp) || Proxy_Entry_table.containsKey(dstIp)){ // 자신의 주소와 같거나 혹은 Proxytable에 있는지 검사.
                 _ARP_Cache_Entry entry = new _ARP_Cache_Entry(srcMac, true, 30);
                 ARP_Cache_table.put(ipKey, entry); // hashtable 원소 => <String, entry>
+                ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
                 byte[] swappedInput = swap(input);
                 Send(swappedInput);
             }
@@ -289,10 +290,11 @@ public class ARPLayer implements BaseLayer {
                     _ARP_Cache_Entry entry = ARP_Cache_table.get(ipKey);
                     System.arraycopy(srcMac, 0, entry.addr, 0 , 6);
                     ARP_Cache_table.replace(ipKey, entry);
+                    ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
                 }
-                else if(){
-                    
-                }   
+                else if(true){
+
+                }
             }
         }
         // ARP Reply 인 경우.
@@ -302,6 +304,7 @@ public class ARPLayer implements BaseLayer {
                 entry.addr = srcMac;
                 entry.status = true;
                 ARP_Cache_table.replace(ipKey, entry);
+                ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
             }
         }
         return true;
