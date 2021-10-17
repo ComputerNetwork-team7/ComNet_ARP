@@ -161,6 +161,11 @@ public class ARPLayer implements BaseLayer {
     	
     	return true;
     }
+    // GARP_Send()
+    public boolean GARP_Send() {
+    	
+    	return true;
+    }
 
 
     // arp cache entry를 해시테이블에 추가하는 함수
