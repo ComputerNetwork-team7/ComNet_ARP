@@ -470,7 +470,18 @@ public class ARPDlg extends JFrame implements BaseLayer {
 
 			if (e.getSource() == gratSendButton) { // gratuitous ARP Send 버튼 클릭 이벤트 처리
 				// TODO: gratuitous ARP Send 버튼 클릭 이벤트 처리 - 패킷 전송(Send) 구현
-
+				byte[] srcMAC = new byte[6];
+				String mac = gratWrite.getText();
+				
+				String[] byte_mac = mac.split("-|:");
+				for (int i = 0; i < 6; i++) {
+					srcMAC[i] = (byte) Integer.parseInt(byte_mac[i], 16);
+				}
+				
+				((ARPLayer) m_LayerMgr.GetLayer("ARP")).SetSrcMacAddress(srcMAC);
+				((EthernetLayer) m_LayerMgr.GetLayer("Ethernet")).SetEnetSrcAddress(srcMAC);
+				
+				((ApplicationLayer) m_LayerMgr.GetLayer("Application")).GARP_Send();
 			}
 		}
 
