@@ -102,6 +102,15 @@ public class ApplicationLayer implements BaseLayer {
     	}
         return true;
     }
+    
+    public boolean GARPSend() {
+    	/*
+    	 * ApplicationLayer의 G-ARP Send 함수
+    	 * IPLayer의 G-ARP Send 함수를 호출함
+    	 */
+    	((IPLayer) this.GetUnderLayer()).GARPSend();
+    	return true;
+    }
  
     public synchronized boolean Receive(byte[] input) {
     	/*
