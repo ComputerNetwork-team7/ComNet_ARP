@@ -163,7 +163,24 @@ public class ARPLayer implements BaseLayer {
     }
     // GARP_Send()
     public boolean GARP_Send() {
-    	
+        
+    	byte[] dstAddr = new byte[6];
+        for(int i = 0; i < 6; i++) {	// FF-FF-FF-FF-FF-FF ( Broadcast )
+            dstAddr[i] = (byte) 0xFF;
+        }
+        ((EthernetLayer) this.GetUnderLayer()).SetEnetDstAddress(dstAddr);
+        
+        m_sHeader.macType = intToByte2(1);	// Hardwaretype : Ethernet
+        m_sHeader.ipType = intToByte2(8);	// IP field 	: 0x0800
+        m_sHeader.macAddrLen = (byte) 0x06;	// Mac Address 	: 6 bytes
+        m_sHeader.ipAddrLen = (byte) 0x04;	// Ip Address 	: 4 bytes
+        m_sHeader.opcode = intToByte2(1);	// OP Code 		: 1 
+        System.arraycopy(m_sHeader.srcIp.addr, 0, m_sHeader.dstIp.addr, 0, m_sHeader.srcIp.addr.length);	// Target IP 에도 srcIP 적어서 전송
+        
+        byte[] bytes = ObjToByte(m_sHeader);
+        
+        this.GetUnderLayer().Send(bytes, bytes.length);
+        
     	return true;
     }
 
