@@ -120,12 +120,13 @@ public class IPLayer implements BaseLayer {
 
         return true;
     }
+
     //ARPLayer의 G-ARP Send 함수 호출.
     public boolean GARP_Send(){
         ((ARPLayer)((EthernetLayer)this.GetUnderLayer()).GetUpperLayer(0)).GARP_Send();
-
         return true;
     }
+
     public byte[] RemoveIPHeader(byte[] input, int length) {
         byte[] cpyInput = new byte[length - 20];
         System.arraycopy(input, 20, cpyInput, 0, length - 20);
@@ -141,15 +142,6 @@ public class IPLayer implements BaseLayer {
 
         return true;
     }
-
-    /*public byte[] RemoveIpHeader(byte[] input, int length){
-        byte[] buff = new byte[length - 20];
-
-        for(int i = 0; i < length - 20; i++){
-            buff[i] = input[20 + i];
-        }
-        return buff;
-    }*/
 
     private byte[] intToByte2(int value) {
         byte[] temp = new byte[2];
