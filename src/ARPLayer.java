@@ -284,7 +284,8 @@ public class ARPLayer implements BaseLayer {
 
         //opcode == 1인경우 basic ARP or proxy ARP
         if(input[7] == 0x01){
-            if(checkAddressWithMyIp(dstIp) || Proxy_Entry_table.containsKey(dstIP_string)){ // 자신의 주소와 같거나 혹은 Proxytable에 있는지 검사.
+            if(checkAddressWithMyIp(dstIp) || Proxy_Entry_table.containsKey(dstIP_string)){ 
+                // 자신의 주소와 같거나 혹은 Proxytable에 있는지 검사.
                 _ARP_Cache_Entry entry = new _ARP_Cache_Entry(srcMac, true, 30);
                 ARP_Cache_table.put(srcIP_string, entry); // hashtable 원소 => <String, entry>
                 ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
@@ -301,7 +302,7 @@ public class ARPLayer implements BaseLayer {
                     ARP_Cache_table.replace(srcIP_string, entry);
                     ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
                 }
-                else{//BroadCast
+                else if(!checkAddressWithMyIp(srcIp)){//BroadCast
                     _ARP_Cache_Entry entry = new _ARP_Cache_Entry(srcMac, true, 30);
                     ARP_Cache_table.put(srcIP_string, entry); // hashtable 원소 => <String, entry>
                     ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
