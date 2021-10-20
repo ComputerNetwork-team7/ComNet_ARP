@@ -294,11 +294,16 @@ public class ARPLayer implements BaseLayer {
             // 위 if문 내 자신의 Mac Address 추가해야함.
             // 자신의 Mac & Ip는 어디 저장되어 있는지??
 
-            else{//자신과 상관없는 경우 => G-ARP 및 BroadCast
-                if(ARP_Cache_table.containsKey(srcIP_string)){
+             else{//자신과 상관없는 경우 => G-ARP
+                if(ARP_Cache_table.containsKey(srcIP_string) && srcIP_string.equals(dstIP_string)){
                     _ARP_Cache_Entry entry = ARP_Cache_table.get(srcIP_string);
                     System.arraycopy(srcMac, 0, entry.addr, 0 , 6);
                     ARP_Cache_table.replace(srcIP_string, entry);
+                    ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
+                }
+                else{//BroadCast
+                    _ARP_Cache_Entry entry = new _ARP_Cache_Entry(srcMac, true, 30);
+                    ARP_Cache_table.put(srcIP_string, entry); // hashtable 원소 => <String, entry>
                     ARPDlg.UpdateARPCacheEntryWindow(ARP_Cache_table);
                 }
             }
